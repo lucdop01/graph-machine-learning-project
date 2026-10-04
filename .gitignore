@@ -218,3 +218,13 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# --- graph-machine-learning-project ---
+# Generated data and training outputs (regenerate with data/generate.py; host the HDF5 files elsewhere)
+data/runs/
+*.h5
+checkpoints/
+results/figures/
+wandb/
+# macOS
+.DS_Store
