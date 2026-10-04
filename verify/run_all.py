@@ -1,10 +1,13 @@
-"""Run all four solver checks. Exits with code 1 if any check fails.
-Usage (from the repo root):  python -m verify.run_all      (about 2 minutes)"""
+"""Run all solver checks. Exits with code 1 if any check fails.
+Usage (from the repo root):  python -m verify.run_all      (about 9 minutes)
+                             python -m verify.run_all --quick   (the first four checks only, about 2 minutes)"""
 import runpy
 import sys
 import time
 
 CHECKS = ["verify.energy_balance", "verify.rosenthal", "verify.stefan", "verify.convergence"]
+if "--quick" not in sys.argv:
+    CHECKS += ["verify.cooling", "verify.solidification"]
 
 failed = []
 for mod in CHECKS:

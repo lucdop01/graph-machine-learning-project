@@ -2,7 +2,8 @@
 Runs 20, 10 and 5 um grids (time step shrinks with dx^2) and a 10 um run with half the time step.
 Fields are compared on the 5 um grid at identical times.
 Usage: python -m verify.convergence
-Pass: 10 vs 5 um peak T within 2%; the melting-range difference is reported as the fine-test noise floor."""
+Pass: 10 vs 5 um peak T within 2%. The melting-range difference is reported as the resolution sensitivity
+of the 10 um data, the solver-vs-solver gap to show next to model errors on test_fine."""
 import numpy as np
 from scipy.interpolate import RegularGridInterpolator
 from solver.solver import simulate
