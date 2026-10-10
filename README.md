@@ -1,6 +1,6 @@
 # Temperature or Energy? Building Melting Physics into Graph Neural Networks for Melt-Pool Simulation
 
-CS4350 group project: Jack Gulley, Satwik Miyyapuram, Luc Dop, Lei Wang.
+CS4350 group project: Jack Gulley, Satwik Miyyapuram, Luc Dop, Lei Wang, Giorgio Bernardini.
 
 We compare graph neural networks that differ only in how much physics is built into them: none (GCN, MeshGraphNet),
 linear heat diffusion (MAM-PhyGNN style), an enthalpy output with an exact material table, and exact heat conservation.
