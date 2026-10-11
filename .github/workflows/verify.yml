@@ -1,9 +1,9 @@
 name: verify-solver
 on:
   push:
-    paths: ["solver/**", "verify/**", "data/generate.py", ".github/workflows/verify.yml"]
+    paths: ["solver/**", "verify/**", "graphs/**", "data/generate.py", ".github/workflows/verify.yml"]
   pull_request:
-    paths: ["solver/**", "verify/**", "data/generate.py", ".github/workflows/verify.yml"]
+    paths: ["solver/**", "verify/**", "graphs/**","data/generate.py", ".github/workflows/verify.yml"]
   workflow_dispatch:
 jobs:
   verify:
