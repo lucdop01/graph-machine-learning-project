@@ -1,5 +1,6 @@
-"""Run all checks: the solver and the graph preprocessing. Exits with code 1 if any check fails.
-Usage (from the repo root):  python -m verify.run_all      (about 11 minutes)
+"""Run all checks: the solver, the graph preprocessing and the evaluation harness.
+Exits with code 1 if any check fails.
+Usage (from the repo root):  python -m verify.run_all      (about 12 minutes)
                              python -m verify.run_all --quick   (the first four checks only, about 2 minutes)"""
 import runpy
 import sys
@@ -7,7 +8,7 @@ import time
 
 CHECKS = ["verify.energy_balance", "verify.rosenthal", "verify.stefan", "verify.convergence"]
 if "--quick" not in sys.argv:
-    CHECKS += ["verify.cooling", "verify.solidification", "verify.graph_energy"]
+    CHECKS += ["verify.cooling", "verify.solidification", "verify.graph_energy", "verify.harness"]
 
 failed = []
 for mod in CHECKS:

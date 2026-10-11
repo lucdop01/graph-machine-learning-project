@@ -14,6 +14,7 @@ moving over a thin Ti-6Al-4V plate, with melting.
 | Solver (`solver/`) | Done, all six checks pass (four accuracy checks, cooling, solidification metric) |
 | Data generator (`data/generate.py`) | Done, cools every run until fully solid; full run checked on every split |
 | Graph preprocessing (`graphs/`) | Done: meshes, node data, PyTorch Geometric dataset; energy check passes (check 7) |
+| Rollout and evaluation harness (`evaluation/`) | Done: rollouts, metrics, selection score, reference predictors; the solver's own frames score zero (check 8) |
 | U-Net grid, Laplacian, partitions, models, training, analysis | To do (`graphs/`, `models/`, `analysis/` list the planned modules) |
 
 ## Setup
@@ -30,7 +31,7 @@ pip install torch_geometric
 All commands run from the repo root.
 
 ```bash
-python -m verify.run_all                     # all seven checks (six solver, one graph), about 11 minutes
+python -m verify.run_all                     # all eight checks (six solver, graph, harness), about 12 minutes
 python -m verify.run_all --quick             # the four accuracy checks only, about 2 minutes
 python -m data.generate --only week1         # 50 constant-property runs for pipeline debugging, a few minutes
 python -m data.generate                      # all ~275 runs plus week1, under an hour, about 1.3 GB
@@ -40,6 +41,9 @@ python -m graphs.preprocess --splits test_interp --mesh-seed 1   # the new-mesh 
 python -m verify.graph_energy --dataset      # graph energy check over every run in data/splits.json
 python -m graphs.dataset --stride 5          # train normalisation statistics, sample counts per split
 python -m graphs.figures                     # mesh and interpolation figures in results/figures/
+python -m verify.harness                     # check 8: the harness scores the solver's own frames, under a minute
+python -m evaluation.rollout --size-bins     # melt-pool size bins from the train split (once)
+python -m evaluation.rollout --split val --stride 5 --predictor oracle   # rollout metrics in results/eval/
 ```
 
 Generated runs go to `data/runs/` (git-ignored) and the index to `data/splits.json` (commit this one).
@@ -80,11 +84,12 @@ laser energy for a model step by summing the Gaussian source at those same solve
 | Cooling until solid, every path and split | `verify/cooling.py` | complete within half the 5 ms cap | slowest 1.86 ms; one zigzag corner boils and is rejected |
 | Solidification duration: grid, time step, output cadence | `verify/solidification.py` | halving the time step < 1% | 0.14%; grid and cadence reported below |
 | Graph preprocessing keeps the energy (see Graphs) | `verify/graph_energy.py` | mesh vs solver energy and laser input < 1% | own runs at most 0.42%; full dataset (355 checks) at most 0.84%, laser at most 0.17% |
+| Evaluation harness, solver frames as predictions (see Evaluation) | `verify/harness.py` | oracle scores 0 (IoU 1); offset and persistence match closed forms | pass at strides 5 and 2 |
 
 In the melting range, the 10 um data differs from the 5 um solution by about 7.4 K on average. This is the resolution
 sensitivity of the 10 um data. It is not an error that every model must make: the models learn the 10 um solver, and
 the main comparisons are made against it. On test_fine, show this solver-to-solver gap next to the model errors.
-The checks also run on GitHub Actions when `solver/`, `verify/` or `data/generate.py` changes
+The checks also run on GitHub Actions when `solver/`, `verify/`, `graphs/`, `evaluation/` or `data/generate.py` changes
 (`.github/workflows/verify.yml`).
 
 ## Graphs
@@ -169,6 +174,89 @@ Over the full dataset (every run in `data/splits.json`, and test_interp again on
 
 All 355 checks pass. "Laser per step" is the larger of the 5-frame and 2-frame values.
 
+## Evaluation
+
+**Rollouts** (`evaluation/rollout.py`). A model gets the true initial state (frame 0, 300 K everywhere), the mesh and
+the laser energy of each step, and predicts the whole run from its own outputs. Every output is compared with the stored
+node temperature, the ground truth from `graphs/preprocess.py`. A rollout takes steps of s saved frames (s = 5 is the
+66.7 us model step, s = 2 the 26.7 us E3 step) up to the last multiple of s at or before the final frame. The few
+frames after that (fewer than s) are not scored. Checkpoints are selected on one number only: the mean rollout nRMSE
+over the 20 val runs at the model's stride (`selection_score`).
+
+A predictor has one method, `step(run, T, k, stride)`, which returns the node temperature (K) at frame k + stride from
+its own state T at frame k. It may use the mesh, the node volumes, the laser energy of the step and the material table,
+but not the stored truth. A rollout stops with an error if a prediction is not finite. `evaluation/torch_predictor.py`
+wraps a PyTorch Geometric model that outputs the normalised dT or dH per node. It builds the model input with the same
+code as the training samples (`graphs.dataset.SampleBuilder`), de-normalises the output with the training statistics
+and converts H to T with the material table (models C and D).
+
+**Metrics**, at every output frame (frame 0 is not scored):
+
+| Metric | Definition |
+|---|---|
+| nRMSE | root mean square of T_hat - T divided by that of T - 300 K, over all nodes and output frames, each node weighted equally |
+| Melting-range error | mean absolute error of T_hat over the (node, frame) pairs where the true T is 1,800-2,000 K, each node weighted equally |
+| Melt-pool IoU | nodes with melted fraction above 0.5, weighted by node area, intersections and unions summed over the output frames. Soft IoU uses the continuous melted fraction (sum of A min over sum of A max). It is undefined only when both pools are empty, so a predicted pool on a run without a true pool scores 0 |
+| Solidification duration | the `solver/events.py` rules on the predicted and the true node temperature at the same output times. Median signed and median absolute relative error over the nodes where both define a duration, plus the fully melted nodes that are missed, spurious, or unfinished (still solidifying at the end of the rollout) |
+| Energy error | mesh energy, the sum of rho d A_i H(T_i), of the prediction minus that of the truth. (a) the largest value relative to the laser input so far, from the frame where 5% of the run's input has arrived; (b) the largest value relative to the run's total input; end: the signed value at the last output frame, relative to the total input |
+| Speedup | solver time over rollout time on the same machine, measured separately (`--benchmark`) |
+
+Conventions:
+
+- The energy error is divided by the laser input on the mesh (the sum of V_i E_i). Check 7 divides by the solver's
+  input, but the processed files do not store it. The two differ by at most 0.17% per step.
+- Next to the energy error the harness reports the energy budget: the mesh energy of the prediction minus the laser
+  input so far. For a perfect model this is the preprocessing mismatch of check 7. Model D should give about 0.
+- Solidification is scored against the solver sampled at the model's output times, so a perfect model scores 0. Next
+  to it the harness reports the cadence error: the truth at the output times against the truth at every saved frame,
+  with the same rules. For test_fine it also reports the gap between the 10 um and the 5 um solver (the paired 10 um
+  test_interp run against the 5 um truth, at the same times).
+- Melt-pool size: the largest melt-pool area of the true run over every saved frame. The two bin edges are the
+  terciles over the train runs that have a pool. They are computed once (`--size-bins`), saved to
+  `data/graphs/size_bins.json` and checked against the training data in the same way as the normalisation statistics.
+  Runs without a pool form the bin "none".
+- week1 has constant properties without melting and saves a frame every 26.52 us. The melting-range error, IoU and
+  solidification are not computed for it.
+- Split summaries: nRMSE is the mean over runs. The melting-range error is pooled over every (node, frame) pair of the
+  split. IoU adds up intersections and unions over the runs, overall and per size bin. Solidification medians are taken
+  over every compared node of the split. Energy errors are given as the median and the maximum over runs.
+
+Reference predictors: `oracle` (the true frames), `persistence` (keeps its state), `offset` (the true frames plus
+10 K) and `cross` (test_fine only: the paired 10 um run, which gives the 10 vs 5 um gap for every metric).
+
+**Check 8** (`verify/harness.py`) feeds the solver's own frames in as predictions. On its own runs (straight 120 and
+150 W at 0.65 m/s, straight 195 W at 0.5 m/s, zigzag 190 W at 0.66 m/s, and a week1 run), at strides 5 and 2:
+
+| Predictor | Result |
+|---|---|
+| oracle | nRMSE, melting-range error, energy error and solidification error 0; IoU 1, hard and soft, in every size bin; 0 missed and 0 spurious nodes |
+| offset +10 K | melting-range error 10 K; nRMSE and energy error equal to their closed forms |
+| persistence | nRMSE 1 (it stays at 300 K), IoU 0, every melted node missed |
+| oracle through `TorchPredictor`, dT and dH | float32 rounding only: every node temperature within 1e-3 K, nRMSE about 2e-8, energy (a) below 2e-6 |
+
+The oracle's energy budget, the preprocessing mismatch, is at most 0.49% (a) and 0.32% (b) at stride 5. Cadence error
+of solidification on the same runs (median signed / median absolute relative error; fully melted nodes missed, and
+unfinished at the rollout horizon):
+
+| Run | Peak pool | Fully melted | Stride 5 (66.7 us) | Stride 2 (26.7 us) |
+|---|---|---|---|---|
+| straight 120 W, 0.65 m/s | 0.0027 mm^2 | 334 | -17% / 17.5%; 13 missed | -4.0% / 4.1%; 1 missed |
+| straight 150 W, 0.65 m/s | 0.0087 mm^2 | 793 | -6.0% / 12.7%; 41 missed | -0.6% / 2.3%; 1 missed |
+| straight 195 W, 0.50 m/s | 0.0397 mm^2 | 1,403 | -0.8% / 2.5%; 8 missed, 16 unfinished | -0.05% / 0.4%; 2 missed |
+| zigzag 190 W, 0.66 m/s | 0.1301 mm^2 | 3,871 | -0.3% / 1.3%; 11 missed, 6 unfinished | +0.01% / 0.2%; 2 missed, 6 unfinished |
+
+This agrees with evaluation note 2 below: pools of mid size are not resolved at the model step, and the 26.7 us step
+brings the error down to a few percent.
+
+```bash
+python -m verify.harness                                   # check 8 on its own runs
+python -m evaluation.rollout --size-bins                   # once, after preprocessing the train split
+python -m verify.harness --dataset                         # check 8 on the processed val and test splits
+python -m evaluation.rollout --split val --stride 5 --predictor oracle     # results/eval/oracle_val_s5.csv and .json
+python -m evaluation.rollout --split test_fine --stride 5 --predictor cross   # the 10 vs 5 um gap
+python -m evaluation.rollout --benchmark --splits val test_path --runs 2 --predictor persistence   # speedup timing
+```
+
 ## Evaluation notes
 
 These change or sharpen the evaluation plan in the proposal.
@@ -250,12 +338,13 @@ New-mesh tests reuse test_interp runs on a differently jittered mesh, so they ne
 ```
 solver/      ti64.py (material table), paths.py (laser paths), solver.py, events.py (melting and solidification events)
 verify/      energy_balance.py, rosenthal.py, stefan.py, convergence.py, cooling.py, solidification.py,
-             graph_energy.py, run_all.py
+             graph_energy.py, harness.py, run_all.py
 data/        generate.py, splits.json, meshes/ (commit), runs/ and graphs/ (git-ignored)
 graphs/      mesh.py, preprocess.py, dataset.py, figures.py; planned: grid, laplacian, partition
+evaluation/  metrics.py, rollout.py (rollouts, evaluation, reference predictors, command line), torch_predictor.py
 models/      planned: linear filters, U-Net, GCN, MeshGraphNet backbone, models A-D
 analysis/    planned: probes, attribution, spectra
 configs/     one yaml per model and ablation
 notebooks/   project.ipynb (course requirement)
-results/     metrics.csv, figures/ (git-ignored)
+results/     eval/ (rollout metrics), figures/ (git-ignored)
 ```

@@ -18,6 +18,10 @@ Raw fields for targets, losses and physics:
   t (time of frame k, s), k, stride, run (run name).
 Model C's extra features (cp(T), harmonic-mean conduction flux) follow from T and the edge vectors at load time.
 
+SampleBuilder builds these inputs from any state T0 at frame k. Training samples pass the true frame k (and the true
+frame k + stride as the target); rollouts (evaluation/torch_predictor.py) pass the model's own previous output and get
+no T_next or H_next. So the features are built one way only.
+
 Normalisation statistics come from the train split on mesh seed 0 only and are saved to
 data/graphs/norm_stride<s>.json: mean and standard deviation of T, phi and E, of the edge features, and of the
 one-step changes dT and dH (the targets of the temperature and enthalpy models). Every node of every sample counts
@@ -29,8 +33,12 @@ Consistency checks (each raises an error that names the fix):
   statistics       same mesh parameters, stride and interpolation, the same frame interval as the dataset, and a
                    fingerprint of the training data (run names and data hashes of the train split, mesh seed 0) equal
                    to that of the current training files. Statistics are never recomputed silently, since a trained
-                   model must keep the statistics it was trained with; recompute with --recompute.
-Statistics passed in by hand (stats=...) are checked for stride, interpolation and frame interval only.
+                   model must keep the statistics it was trained with; recompute with --recompute. load_stats() reads
+                   the saved file with these checks.
+Statistics passed in by hand (stats=...) are checked for stride, interpolation and frame interval only (check_stats).
+
+torch and torch_geometric are optional for this module: without them (CI, the numpy-only evaluation harness) RunGraph,
+load_runs, load_stats and compute_stats work, and SampleBuilder and MeltPoolGraphs raise an error.
 
 Usage (after python -m graphs.preprocess):
   python -m graphs.dataset --stride 5            train statistics (computed once) and sample counts per split
@@ -40,26 +48,39 @@ Usage (after python -m graphs.preprocess):
   loader = torch_geometric.loader.DataLoader(train, batch_size=4, shuffle=True)
 """
 import argparse
+import hashlib
 import json
+import numbers
 import os
 
 import h5py
 import numpy as np
-import torch
-from torch.utils.data import Dataset
-from torch_geometric.data import Data
 
-import hashlib
-import numbers
+try:                                  # optional, see the module docstring; other import errors are not hidden
+    import torch
+    from torch.utils.data import Dataset
+    from torch_geometric.data import Data
+    TORCH_MISSING = None
+except ModuleNotFoundError as e:
+    if e.name not in ("torch", "torch_geometric"):
+        raise
+    torch, Dataset, Data = None, object, object
+    TORCH_MISSING = str(e)
 
 from solver.ti64 import liquid_fraction
 from graphs.mesh import PARAMS, get_mesh
-from graphs.preprocess import OUT, material, processed_file, processed_problems, read_processed_header
+from graphs.preprocess import (OUT, data_hash, grid_of, material, node_laser_energy, node_temperature, processed_file,
+                               processed_problems, read_processed_header)
 
 NODE_FEATURES = ("T", "phi", "E", "boundary")
 EDGE_FEATURES = ("dx", "dy", "dist")
 TARGETS = ("dT", "dH")
 INDEX = "data/splits.json"
+
+
+def require_torch(what):
+    if TORCH_MISSING:
+        raise ImportError(f"{what} needs torch and torch_geometric ({TORCH_MISSING})")
 
 
 def check_stride(stride):
@@ -103,7 +124,7 @@ class GraphSample(Data):
 
 
 class RunGraph:
-    """One processed run (graphs/preprocess.py) and its mesh. Also the entry point for rollouts (plan step 3)."""
+    """One processed run (graphs/preprocess.py) and its mesh. Also the entry point for rollouts (evaluation/)."""
 
     def __init__(self, fn, preload=True):
         self.file = fn
@@ -117,7 +138,31 @@ class RunGraph:
             self.t = f["t"][:]
             self._T = f["T"][:] if preload else None
             self._E = f["E_frame"][:] if preload else None
-        self.mesh = get_mesh(self.attrs["mesh"], int(self.attrs["mesh_seed"]))
+        self._setup(get_mesh(self.attrs["mesh"], int(self.attrs["mesh_seed"])))
+
+    @classmethod
+    def from_simulation(cls, sim, mesh, interp="T"):
+        """A run held in memory, built from simulate() output without processed files (check 8 in CI). sim needs
+        'name', 'split' and 'path' set, as in verify/graph_energy.py. The node data is computed and stored as float32
+        exactly as graphs.preprocess writes it."""
+        if not np.allclose(mesh.waypoints, sim["waypoints"], rtol=0, atol=1e-12):
+            raise ValueError(f"{sim['name']}: laser path differs from mesh {mesh.name}")
+        self = cls.__new__(cls)
+        T = node_temperature(sim, mesh, interp)
+        E = node_laser_energy(sim, mesh.pos).astype(np.float32)
+        self.file, self.name = None, sim["name"]
+        self.attrs = {key: sim[key] for key in ("P", "v", "d", "dt", "dx", "laser_off", "t_end", "terminal_frame",
+                                                "path", "split")}
+        self.attrs.update(mesh=mesh.name, mesh_seed=mesh.seed, interp=interp, save_every=grid_of(sim)[3],
+                          mesh_params=json.dumps(PARAMS, sort_keys=True), mesh_fp=mesh.fingerprint(),
+                          data_hash=data_hash(T, E))
+        self.t = np.asarray(sim["t"], float)
+        self._T, self._E = T, E
+        self._setup(mesh)
+        return self
+
+    def _setup(self, mesh):
+        self.mesh = mesh
         self.last = len(self.t) - 1                 # index of the final (fully solid) frame
         self.frame_us = float(self.t[1] * 1e6)       # 13.34 us, 26.52 us for week1
         self.H_from_T, self.T_from_H = material(self.attrs["split"])
@@ -135,6 +180,12 @@ class RunGraph:
         """Node temperature at frame k (K)."""
         return self._read("T", k, k + 1)[0].astype(np.float64)
 
+    def T_frames(self, frames):
+        """Node temperature at several frames (K), shape (len(frames), nodes)."""
+        frames = np.asarray(frames, dtype=int)
+        a = int(frames.min())
+        return self._read("T", a, int(frames.max()) + 1)[frames - a].astype(np.float64)
+
     def laser(self, k, stride):
         """Laser energy per volume (J/m^3) of the model step from frame k to frame k + stride."""
         stride = check_stride(stride)
@@ -142,11 +193,29 @@ class RunGraph:
             raise IndexError(f"no model step of {stride} frames starts at frame {k} (last frame {self.last})")
         return self._read("E_frame", k, k + stride).astype(np.float64).sum(axis=0)
 
+    def laser_input(self):
+        """(frames,) laser energy on the mesh (J) that has arrived up to each frame: cumulative sum of V_i E_i."""
+        per_interval = self._read("E_frame", 0, self.last).astype(np.float64) @ self.V
+        return np.concatenate([[0.0], np.cumsum(per_interval)])
+
     def phi(self, T):
         return liquid_fraction(T) if self.melts else np.zeros_like(T)
 
     def starts(self, stride):
         return range(0, self.last - check_stride(stride) + 1)
+
+
+def load_runs(split, mesh_seed=0, root=OUT, index=INDEX, preload=True):
+    """Every processed run of one split, in the order of data/splits.json."""
+    rows = [r for r in json.load(open(index)) if r["split"] == split]
+    if not rows:
+        raise ValueError(f"no runs of split {split!r} in {index}")
+    files = [processed_file(run_name(r), mesh_seed, root) for r in rows]
+    missing = [f for f in files if not os.path.exists(f)]
+    if missing:
+        raise FileNotFoundError(f"{len(missing)} processed runs missing (first {missing[0]}); run "
+                                f"python -m graphs.preprocess --splits {split} --mesh-seed {mesh_seed}")
+    return [RunGraph(f, preload) for f in files]
 
 
 def stats_file(stride, root=OUT):
@@ -192,20 +261,85 @@ def compute_stats(runs, stride):
                 target={key: ms(acc[key]) for key in TARGETS})
 
 
+def load_stats(stride, root=OUT, index=INDEX):
+    """The saved training statistics of a stride, checked against the current mesh parameters and the current
+    processed train split. Raises if the file is missing or stale; never computes or recomputes it."""
+    stride = check_stride(stride)
+    fn = stats_file(stride, root)
+    if not os.path.exists(fn):
+        raise FileNotFoundError(f"{fn} missing: run python -m graphs.dataset --stride {stride} first")
+    with open(fn) as f:
+        stats = json.load(f)
+    fix = f"; recompute with python -m graphs.dataset --stride {stride} --recompute"
+    if stats.get("mesh_params") != PARAMS:
+        raise ValueError(f"{fn} was computed for other mesh parameters" + fix)
+    if stats.get("train_fingerprint") != current_train_fingerprint(root, index):
+        raise ValueError(f"{fn} was computed from different training data than the current processed train "
+                         f"split (data/graphs/seed0)" + fix)
+    if stats.get("stride") != stride:
+        raise ValueError(f"{fn} holds statistics for stride {stats.get('stride')}, not {stride}" + fix)
+    return stats
+
+
+def check_stats(stats, stride, runs, what):
+    """Statistics fit these runs: same stride, interpolation and frame interval. what names the runs in errors."""
+    interp = sorted({r.attrs["interp"] for r in runs})
+    if stats.get("stride") != stride:
+        raise ValueError(f"statistics are for stride {stats.get('stride')}, not {stride}")
+    if stats.get("interp") != interp:
+        raise ValueError(f"statistics come from {stats.get('interp')}-interpolated data, {what} is "
+                         f"{interp}-interpolated")
+    frame_us = runs[0].frame_us
+    if not np.isclose(stats.get("frame_us", np.nan), frame_us, rtol=1e-6):
+        raise ValueError(f"{what} saves a frame every {frame_us:.2f} us, the statistics assume "
+                         f"{stats.get('frame_us', float('nan')):.2f} us, so stride {stride} would be a different "
+                         f"model step (week1 needs its own statistics, passed as stats=...)")
+
+
+class SampleBuilder:
+    """Model input for the step from frame k to frame k + stride, built from a given state T0 (K) at frame k.
+    T_next (the true frame k + stride) adds the training targets; rollouts leave it out. device: where the tensors
+    are made (the mesh tensors are cached there)."""
+
+    def __init__(self, stats, stride, device=None):
+        require_torch("SampleBuilder")
+        self.stats, self.stride, self.device = stats, check_stride(stride), device
+        self._static = {}
+
+    def mesh_tensors(self, run):
+        key = (run.mesh.name, run.mesh.seed)
+        if key not in self._static:
+            m, s = run.mesh, self.stats["edge"]
+            rel, dist = m.edge_vectors()
+            ea = np.c_[(rel - s["rel"]["mean"]) / s["rel"]["std"], (dist - s["dist"]["mean"]) / s["dist"]["std"]]
+            st = dict(edge_index=torch.from_numpy(m.edge_index), edge_attr=torch.tensor(ea, dtype=torch.float32),
+                      rev_edge=torch.from_numpy(m.rev), pos=torch.tensor(m.pos, dtype=torch.float32),
+                      boundary=torch.from_numpy(m.boundary))
+            self._static[key] = {k: v.to(self.device) for k, v in st.items()} if self.device is not None else st
+        return self._static[key]
+
+    def sample(self, run, k, T0, T_next=None):
+        s, n = self.stride, self.stats["node"]
+        T0 = np.asarray(T0, dtype=np.float64)
+        E = run.laser(k, s)
+        phi = run.phi(T0)
+        st = self.mesh_tensors(run)
+        z = lambda x, key: (x - n[key]["mean"]) / n[key]["std"]
+        x = np.c_[z(T0, "T"), z(phi, "phi"), z(E, "E"), run.mesh.boundary]
+        f32 = lambda a: torch.tensor(a, dtype=torch.float32, device=self.device)
+        raw = dict(T=f32(T0), H=f32(run.H_from_T(T0)), E=f32(E), V=f32(run.V))
+        if T_next is not None:
+            raw.update(T_next=f32(T_next), H_next=f32(run.H_from_T(np.asarray(T_next, dtype=np.float64))))
+        return GraphSample(x=f32(x), **st, **raw, t=float(run.t[k]), k=k, stride=s, run=run.name)
+
+
 class MeltPoolGraphs(Dataset):
     """All one-step samples of one split at one stride. Pass stats to override the saved training statistics."""
 
     def __init__(self, split, stride=5, mesh_seed=0, root=OUT, index=INDEX, stats=None, preload=True):
+        require_torch("MeltPoolGraphs")
         stride = check_stride(stride)
-        rows = [r for r in json.load(open(index)) if r["split"] == split]
-        if not rows:
-            raise ValueError(f"no runs of split {split!r} in {index}")
-        files = [processed_file(run_name(r), mesh_seed, root) for r in rows]
-        missing = [f for f in files if not os.path.exists(f)]
-        if missing:
-            raise FileNotFoundError(f"{len(missing)} processed runs missing (first {missing[0]}); run "
-                                    f"python -m graphs.preprocess --splits {split} --mesh-seed {mesh_seed}")
-        self.runs = [RunGraph(f, preload) for f in files]
+        self.runs = load_runs(split, mesh_seed, root, index, preload)
         self.split, self.stride = split, stride
         self.index = [(i, k) for i, run in enumerate(self.runs) for k in run.starts(stride)]
         frames = {round(r.frame_us, 6) for r in self.runs}
@@ -218,57 +352,16 @@ class MeltPoolGraphs(Dataset):
                     raise FileNotFoundError(f"{fn} missing: run python -m graphs.dataset --stride {stride} first")
                 with open(fn, "w") as f:
                     json.dump(compute_stats(self.runs, stride), f, indent=1)
-            with open(fn) as f:
-                stats = json.load(f)
-            fix = f"; recompute with python -m graphs.dataset --stride {stride} --recompute"
-            if stats.get("mesh_params") != PARAMS:
-                raise ValueError(f"{fn} was computed for other mesh parameters" + fix)
-            if stats.get("train_fingerprint") != current_train_fingerprint(root, index):
-                raise ValueError(f"{fn} was computed from different training data than the current processed train "
-                                 f"split (data/graphs/seed0)" + fix)
-        self._check_stats(stats, stride)
+            stats = load_stats(stride, root, index)
+        check_stats(stats, stride, self.runs, f"split {split}")
         self.stats = stats
-        self._static = {}
-
-    def _check_stats(self, stats, stride):
-        interp = sorted({r.attrs["interp"] for r in self.runs})
-        if stats.get("stride") != stride:
-            raise ValueError(f"statistics are for stride {stats.get('stride')}, not {stride}")
-        if stats.get("interp") != interp:
-            raise ValueError(f"statistics come from {stats.get('interp')}-interpolated data, split {self.split} "
-                             f"is {interp}-interpolated")
-        frame_us = self.runs[0].frame_us
-        if not np.isclose(stats.get("frame_us", np.nan), frame_us, rtol=1e-6):
-            raise ValueError(f"split {self.split} saves a frame every {frame_us:.2f} us, the statistics assume "
-                             f"{stats.get('frame_us', float('nan')):.2f} us, so stride {stride} would be a different "
-                             f"model step (week1 needs its own statistics, passed as stats=...)")
+        self.builder = SampleBuilder(stats, stride)
 
     def __len__(self):
         return len(self.index)
 
-    def _mesh_tensors(self, run):
-        key = (run.mesh.name, run.mesh.seed)
-        if key not in self._static:
-            m, s = run.mesh, self.stats["edge"]
-            rel, dist = m.edge_vectors()
-            ea = np.c_[(rel - s["rel"]["mean"]) / s["rel"]["std"], (dist - s["dist"]["mean"]) / s["dist"]["std"]]
-            self._static[key] = dict(edge_index=torch.from_numpy(m.edge_index),
-                                     edge_attr=torch.tensor(ea, dtype=torch.float32),
-                                     rev_edge=torch.from_numpy(m.rev), pos=torch.tensor(m.pos, dtype=torch.float32),
-                                     boundary=torch.from_numpy(m.boundary))
-        return self._static[key]
-
     def sample(self, run, k):
-        s, n = self.stride, self.stats["node"]
-        T0, T1, E = run.T(k), run.T(k + s), run.laser(k, s)
-        phi = run.phi(T0)
-        st = self._mesh_tensors(run)
-        z = lambda x, key: (x - n[key]["mean"]) / n[key]["std"]
-        x = np.c_[z(T0, "T"), z(phi, "phi"), z(E, "E"), st["boundary"].numpy()]
-        f32 = lambda a: torch.tensor(a, dtype=torch.float32)
-        return GraphSample(x=f32(x), **st, T=f32(T0), T_next=f32(T1), H=f32(run.H_from_T(T0)),
-                           H_next=f32(run.H_from_T(T1)), E=f32(E), V=f32(run.V), t=float(run.t[k]), k=k, stride=s,
-                           run=run.name)
+        return self.builder.sample(run, k, run.T(k), run.T(k + self.stride))
 
     def __getitem__(self, i):
         r, k = self.index[i]
