@@ -44,6 +44,7 @@ python -m graphs.dataset --stride 5          # train normalisation statistics, s
 python -m verify.laplacian                   # physical Laplacian checks on every committed mesh
 python -m verify.linear_filter               # LF-T basis and synthetic fit checks
 python -m models.linear_filter --order 3      # fit LF-T on train only; checkpoint in checkpoints/
+python -m models.linear_filter_experiment --orders 1 3 5 --stride 5  # reproducible train/val one-step comparison
 python -m graphs.figures                     # mesh and interpolation figures in results/figures/
 python -m verify.harness                     # check 8: the harness scores the solver's own frames, under a minute
 python -m evaluation.rollout --size-bins     # melt-pool size bins from the train split (once)
@@ -188,6 +189,11 @@ over the model step. This is a polynomial in L, equivalent to the planned sum of
 scaled. There is no intercept. The fit uses ordinary least squares on **train only** and saves its coefficients,
 training-data fingerprint and one-step diagnostics in `checkpoints/` (git-ignored). `--order` selects K; validation
 rollouts, rather than training error, will be used to choose it.
+`models/linear_filter_experiment.py` compares requested orders with the same train and val runs and writes
+`results/linear_filter_orders_s5.csv`. Its val scores use the true temperature at the start of each step; they
+measure one-step generalisation, not error accumulation in a rollout. The CSV includes the training-data fingerprint,
+fit time, overall RMSE and mean absolute error where the true next temperature is 1,800-2,000 K. Checkpoints are
+saved separately by order so the later rollout can use exactly the fitted coefficients.
 
 ## Evaluation
 

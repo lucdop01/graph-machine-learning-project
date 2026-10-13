@@ -67,6 +67,23 @@ class FilterBasis:
         return result[0] if single else result
 
 
+def predict_next(basis, temperature, laser, fit):
+    """Apply fitted LF-T coefficients to one or several true or predicted states."""
+    if basis.order != fit["order"]:
+        raise ValueError(f"basis order {basis.order} differs from fitted order {fit['order']}")
+    T = np.asarray(temperature, dtype=np.float64)
+    E = np.asarray(laser, dtype=np.float64)
+    if E.shape != T.shape:
+        raise ValueError("laser energy must have the same shape as temperature")
+    weights = np.asarray(fit["weights"], dtype=np.float64)
+    if weights.shape != (basis.order + 1,):
+        raise ValueError("fitted weights must contain one value per filter order plus laser")
+    scales = fit["scales"]
+    change = (basis.features(T) @ weights[:-1] / scales["T"]
+              + weights[-1] * E / scales["E"]) * scales["dT"]
+    return T + change
+
+
 def fit_filter(runs, stats, stride=5, order=3):
     """Fit one LF-T model from train runs; return its coefficients and diagnostics."""
     stride = check_stride(stride)

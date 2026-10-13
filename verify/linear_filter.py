@@ -7,7 +7,7 @@ import numpy as np
 
 from graphs.dataset import train_fingerprint
 from graphs.mesh import get_mesh
-from models.linear_filter import FilterBasis, fit_filter
+from models.linear_filter import FilterBasis, fit_filter, predict_next
 
 
 class SyntheticRun:
@@ -46,6 +46,8 @@ def main():
                  node=dict(T=dict(std=1), E=dict(std=1)), target=dict(dT=dict(std=1)))
     fitted = fit_filter([run], stats, stride=1, order=3)
     np.testing.assert_allclose(fitted["weights"], weights, rtol=0, atol=1e-8)
+    np.testing.assert_allclose(predict_next(basis, frames[0], laser[0], fitted), frames[1],
+                               rtol=0, atol=1e-8)
     if fitted["one_step_rmse_K"] > 1e-5:
         raise AssertionError("synthetic one-step fit did not recover the exact transitions")
     print("LF-T: constant field, temperature-shift invariance, and coefficient recovery pass")
