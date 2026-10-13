@@ -15,7 +15,7 @@ moving over a thin Ti-6Al-4V plate, with melting.
 | Data generator (`data/generate.py`) | Done, cools every run until fully solid; full run checked on every split |
 | Graph preprocessing (`graphs/`) | Done: meshes, node data, PyTorch Geometric dataset; energy check passes (check 7) |
 | Rollout and evaluation harness (`evaluation/`) | Done: rollouts, metrics, selection score, reference predictors; the solver's own frames score zero (check 8) |
-| Laplacian and LF-T baseline | Done: least-squares fit compared across orders on val one-step and rollout |
+| Laplacian and LF-T baseline | Done: unconstrained and stable fits compared on val one-step and rollout |
 | U-Net grid, partitions, other models, training, analysis | To do (`graphs/`, `models/`, `analysis/` list the planned modules) |
 
 ## Setup
@@ -49,6 +49,8 @@ python -m graphs.figures                     # mesh and interpolation figures in
 python -m verify.harness                     # check 8: the harness scores the solver's own frames, under a minute
 python -m evaluation.rollout --size-bins     # melt-pool size bins from the train split (once)
 python -m models.linear_filter_rollout --split val --stride 5 --orders 1 3 5  # rollout comparison
+python -m models.linear_filter_experiment --orders 1 3 5 --stride 5 --stable  # constrained fit comparison
+python -m models.linear_filter_rollout --split val --stride 5 --orders 1 3 5 --stable  # constrained rollout
 python -m evaluation.rollout --split val --stride 5 --predictor oracle   # rollout metrics in results/eval/
 ```
 
@@ -201,6 +203,12 @@ per-run metrics to `results/eval/` and an order comparison to `results/linear_fi
 The ordinary least-squares fit gave good one-step errors, but all three orders ran away in validation rollouts:
 fine mesh modes grow when predictions are fed back into the model. These results are retained as the original
 baseline, including the failed long-horizon behavior.
+
+`--stable` fits the same data with nonnegative diffusion coefficients whose sum is at most one. Since each
+Chebyshev operator has eigenvalues in [-1, 1], their convex combination cannot amplify a free-diffusion mode.
+The stable fit uses separate `_stable` checkpoints and reports, so the original results remain reproducible.
+The validation comparison is in `results/linear_filter_rollout_stable_val_s5.csv`. Among K=1, 3 and 5, K=5
+has the best validation rollout score; the constrained baseline still has substantial melt-range and energy error.
 
 ## Evaluation
 

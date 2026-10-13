@@ -59,9 +59,18 @@ def main():
     predictor = LinearFilterPredictor(fitted, stats)
     simulated = rollout(run, predictor, stride=1)
     np.testing.assert_allclose(simulated["T"], run._T[1:], rtol=0, atol=1e-7)
+    stable = fit_filter([run], stats, stride=1, order=3, stable=True)
+    diffusion = np.asarray(stable["weights"][:-1]) * stable["scales"]["dT"] / stable["scales"]["T"]
+    if np.min(diffusion) < -1e-8 or diffusion.sum() > 1 + 1e-8:
+        raise AssertionError("stable fit violates its diffusion coefficient constraints")
+    x = np.linspace(-1, 1, 1001)
+    gain = 1 - diffusion.sum() + sum(a * np.cos(k * np.arccos(x))
+                                   for k, a in enumerate(diffusion, 1))
+    if np.max(np.abs(gain)) > 1 + 1e-8:
+        raise AssertionError("stable fit amplifies a Laplacian eigenmode")
     if fitted["one_step_rmse_K"] > 1e-5:
         raise AssertionError("synthetic one-step fit did not recover the exact transitions")
-    print("LF-T: constant field, coefficient recovery, and synthetic rollout pass")
+    print("LF-T: constant field, coefficient recovery, synthetic rollout, and spectral stability pass")
 
 
 if __name__ == "__main__":

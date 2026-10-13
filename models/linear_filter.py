@@ -17,6 +17,7 @@ import json
 import os
 
 import numpy as np
+from scipy.optimize import Bounds, LinearConstraint, minimize
 
 from graphs.dataset import (check_stats, check_stride, load_runs, load_stats,
                             train_fingerprint)
@@ -100,7 +101,8 @@ class LinearFilterPredictor:
             if not np.isclose(fit["scales"][field], stats[group][key]["std"], rtol=1e-12):
                 raise ValueError(f"checkpoint and training statistics disagree on the {field} scale")
         self.fit, self.stats = fit, stats
-        self.name = f"lf_t_k{fit['order']}"
+        label = "stable_" if fit.get("constraint") == "spectral_convex" else ""
+        self.name = f"lf_t_{label}k{fit['order']}"
         self._basis = {}
 
     def reset(self, run):
@@ -118,8 +120,14 @@ class LinearFilterPredictor:
         return predict_next(self.current_basis, T, run.laser(k, stride), self.fit)
 
 
-def fit_filter(runs, stats, stride=5, order=3):
-    """Fit one LF-T model from train runs; return its coefficients and diagnostics."""
+def fit_filter(runs, stats, stride=5, order=3, stable=False):
+    """Fit one LF-T model from train runs; return its coefficients and diagnostics.
+
+    With stable=True, nonnegative diffusion coefficients sum to at most one.
+    The one-step heat operator is then a convex combination of I and the
+    Chebyshev operators, whose eigenvalues lie in [-1, 1]. Its spectrum is
+    therefore also in [-1, 1], so free diffusion cannot amplify a mode.
+    """
     stride = check_stride(stride)
     if not runs or any(run.attrs["split"] != "train" for run in runs):
         raise ValueError("the linear filter must be fitted on train runs only")
@@ -163,9 +171,32 @@ def fit_filter(runs, stats, stride=5, order=3):
     condition = float(np.linalg.cond(gram))
     if not np.isfinite(condition) or condition > 1e12:
         raise ValueError(f"filter design is ill-conditioned (X'X condition {condition:.2g}); try a smaller order")
-    weights = np.linalg.solve(gram, rhs)
+    if stable:
+        # Optimise the same least-squares objective with a spectral stability
+        # constraint. The fitted coefficients are dimensionless after multiplying
+        # by dT_scale / T_scale; the laser coefficient must remain nonnegative.
+        limit = T_scale / dT_scale
+        scale = 1e4 / count
+        G, h = gram * scale, rhs * scale
+        start = np.zeros(order + 1)
+        start[-1] = max(0.0, rhs[-1] / gram[-1, -1])
+        diffusion_sum = np.r_[np.ones(order), 0.0][None, :]
+        solved = minimize(lambda w: 0.5 * w @ G @ w - h @ w, start,
+                          jac=lambda w: G @ w - h, hess=lambda w: G,
+                          method="trust-constr",
+                          bounds=Bounds(np.zeros(order + 1), np.full(order + 1, np.inf)),
+                          constraints=[LinearConstraint(diffusion_sum, -np.inf, limit)],
+                          options=dict(gtol=1e-9, xtol=1e-12, barrier_tol=1e-12, maxiter=1000))
+        if not solved.success:
+            raise RuntimeError(f"stable filter fit failed: {solved.message}")
+        weights = solved.x
+        if weights[:-1].sum() > limit + 1e-7 or np.min(weights) < -1e-7:
+            raise RuntimeError("stable filter solver returned infeasible coefficients")
+    else:
+        weights = np.linalg.solve(gram, rhs)
     residual_sq = max(0.0, target_sq - 2 * weights @ rhs + weights @ gram @ weights)
-    return dict(kind="LF-T", basis="chebyshev_constant_removed", order=order,
+    return dict(kind="LF-T", basis="chebyshev_constant_removed",
+                constraint="spectral_convex" if stable else "none", order=order,
                 stride=stride, frame_us=float(stats["frame_us"]),
                 train_fingerprint=fingerprint,
                 scales=dict(T=T_scale, E=E_scale, dT=dT_scale),
@@ -179,12 +210,14 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--stride", type=int, default=5)
     parser.add_argument("--order", type=int, default=3)
+    parser.add_argument("--stable", action="store_true", help="constrain free diffusion to be spectrally stable")
     parser.add_argument("--out", help="checkpoint JSON path; defaults to checkpoints/linear_filter_s<S>_k<K>.json")
     args = parser.parse_args()
     stats = load_stats(args.stride)
     runs = load_runs("train", preload=False)
-    result = fit_filter(runs, stats, args.stride, args.order)
-    out = args.out or f"checkpoints/linear_filter_s{args.stride}_k{args.order}.json"
+    result = fit_filter(runs, stats, args.stride, args.order, stable=args.stable)
+    label = "_stable" if args.stable else ""
+    out = args.out or f"checkpoints/linear_filter{label}_s{args.stride}_k{args.order}.json"
     os.makedirs(os.path.dirname(os.path.abspath(out)), exist_ok=True)
     with open(out + ".tmp", "w") as file:
         json.dump(result, file, indent=2)

@@ -1,11 +1,13 @@
 """Reproduce the LF-T order comparison on the fixed train/val split.
 
 Run from the repository root:
-  python -m models.linear_filter_experiment --orders 1 3 5 --stride 5
+  python -m models.linear_filter_experiment --orders 1 3 5 --stride 5 --stable
 
 Each order is fitted independently on all train steps, then scored one step at
 a time on val with the true current temperature. This is not a rollout. The
 checkpoint for each order goes to checkpoints/ and the CSV goes to results/.
+Omit --stable to reproduce the original unconstrained ordinary least-squares
+fits, whose one-step scores were good but rollouts diverged.
 """
 
 import argparse
@@ -57,12 +59,14 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--stride", type=int, default=5)
     parser.add_argument("--orders", nargs="+", type=int, default=[1, 3, 5])
+    parser.add_argument("--stable", action="store_true", help="fit with a spectral stability constraint")
     parser.add_argument("--report", help="CSV path; defaults to results/linear_filter_orders_s<S>.csv")
     parser.add_argument("--checkpoint-dir", default="checkpoints")
     args = parser.parse_args()
     if not args.orders or len(set(args.orders)) != len(args.orders) or any(k < 1 for k in args.orders):
         parser.error("--orders needs distinct positive integers")
-    report = args.report or f"results/linear_filter_orders_s{args.stride}.csv"
+    label = "_stable" if args.stable else ""
+    report = args.report or f"results/linear_filter_orders{label}_s{args.stride}.csv"
 
     stats = load_stats(args.stride)
     train = load_runs("train", preload=False)
@@ -73,16 +77,16 @@ def main():
     rows = []
     for order in args.orders:
         start = time.perf_counter()
-        fit = fit_filter(train, stats, args.stride, order)
+        fit = fit_filter(train, stats, args.stride, order, stable=args.stable)
         fit_seconds = time.perf_counter() - start
-        checkpoint = os.path.join(args.checkpoint_dir, f"linear_filter_s{args.stride}_k{order}.json")
+        checkpoint = os.path.join(args.checkpoint_dir, f"linear_filter{label}_s{args.stride}_k{order}.json")
         with open(checkpoint + ".tmp", "w") as file:
             json.dump(fit, file, indent=2)
         os.replace(checkpoint + ".tmp", checkpoint)
         start = time.perf_counter()
         val_score = score_one_step(val, fit)
         val_seconds = time.perf_counter() - start
-        row = dict(stride=args.stride, order=order, train_runs=fit["runs"],
+        row = dict(stride=args.stride, order=order, constraint=fit["constraint"], train_runs=fit["runs"],
                    train_node_steps=fit["nodes_steps"], val_runs=len(val),
                    val_node_steps=val_score["node_steps"], melt_node_steps=val_score["melt_node_steps"],
                    train_rmse_K=fit["one_step_rmse_K"],
