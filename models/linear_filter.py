@@ -8,7 +8,8 @@ without laser input must remain stationary.
 
 Usage: python -m models.linear_filter --stride 5 --order 3
 The saved checkpoint contains one set of coefficients; no validation or test
-data is used here. Rollout evaluation is the next implementation step.
+data is used for fitting. LinearFilterPredictor connects it to the shared
+rollout harness.
 """
 
 import argparse
@@ -82,6 +83,39 @@ def predict_next(basis, temperature, laser, fit):
     change = (basis.features(T) @ weights[:-1] / scales["T"]
               + weights[-1] * E / scales["E"]) * scales["dT"]
     return T + change
+
+
+class LinearFilterPredictor:
+    """LF-T adapter for evaluation.rollout: one mesh operator, own-state feedback."""
+
+    def __init__(self, fit, stats):
+        if fit.get("kind") != "LF-T" or fit.get("basis") != "chebyshev_constant_removed":
+            raise ValueError("checkpoint is not a compatible LF-T fit")
+        if fit.get("train_fingerprint") != stats.get("train_fingerprint"):
+            raise ValueError("checkpoint and current training statistics come from different data")
+        self.stride = check_stride(fit["stride"])
+        if self.stride != stats.get("stride") or not np.isclose(fit["frame_us"], stats["frame_us"], rtol=1e-6):
+            raise ValueError("checkpoint and training statistics use different model steps")
+        for field, group, key in (("T", "node", "T"), ("E", "node", "E"), ("dT", "target", "dT")):
+            if not np.isclose(fit["scales"][field], stats[group][key]["std"], rtol=1e-12):
+                raise ValueError(f"checkpoint and training statistics disagree on the {field} scale")
+        self.fit, self.stats = fit, stats
+        self.name = f"lf_t_k{fit['order']}"
+        self._basis = {}
+
+    def reset(self, run):
+        check_stats(self.stats, self.stride, [run], f"run {run.name}")
+        key = run.mesh.fingerprint()
+        if key not in self._basis:
+            self._basis[key] = FilterBasis(run.mesh, self.fit["order"])
+        self.current_basis = self._basis[key]
+
+    def step(self, run, T, k, stride):
+        if stride != self.stride:
+            raise ValueError(f"{self.name} was fitted for stride {self.stride}, not {stride}")
+        if not hasattr(self, "current_basis"):
+            self.reset(run)
+        return predict_next(self.current_basis, T, run.laser(k, stride), self.fit)
 
 
 def fit_filter(runs, stats, stride=5, order=3):

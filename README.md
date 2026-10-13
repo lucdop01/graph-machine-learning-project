@@ -15,7 +15,7 @@ moving over a thin Ti-6Al-4V plate, with melting.
 | Data generator (`data/generate.py`) | Done, cools every run until fully solid; full run checked on every split |
 | Graph preprocessing (`graphs/`) | Done: meshes, node data, PyTorch Geometric dataset; energy check passes (check 7) |
 | Rollout and evaluation harness (`evaluation/`) | Done: rollouts, metrics, selection score, reference predictors; the solver's own frames score zero (check 8) |
-| Laplacian and LF-T least-squares fit | Done; validation rollout and order selection remain |
+| Laplacian and LF-T baseline | Done: least-squares fit compared across orders on val one-step and rollout |
 | U-Net grid, partitions, other models, training, analysis | To do (`graphs/`, `models/`, `analysis/` list the planned modules) |
 
 ## Setup
@@ -48,6 +48,7 @@ python -m models.linear_filter_experiment --orders 1 3 5 --stride 5  # reproduci
 python -m graphs.figures                     # mesh and interpolation figures in results/figures/
 python -m verify.harness                     # check 8: the harness scores the solver's own frames, under a minute
 python -m evaluation.rollout --size-bins     # melt-pool size bins from the train split (once)
+python -m models.linear_filter_rollout --split val --stride 5 --orders 1 3 5  # rollout comparison
 python -m evaluation.rollout --split val --stride 5 --predictor oracle   # rollout metrics in results/eval/
 ```
 
@@ -188,12 +189,18 @@ temperature field. The filter fits T_next = T + sum_{k=1}^K a_k F_k(T) + b E, wh
 over the model step. This is a polynomial in L, equivalent to the planned sum of Laplacian powers but numerically
 scaled. There is no intercept. The fit uses ordinary least squares on **train only** and saves its coefficients,
 training-data fingerprint and one-step diagnostics in `checkpoints/` (git-ignored). `--order` selects K; validation
-rollouts, rather than training error, will be used to choose it.
+rollouts, rather than training error, are used to choose it.
 `models/linear_filter_experiment.py` compares requested orders with the same train and val runs and writes
 `results/linear_filter_orders_s5.csv`. Its val scores use the true temperature at the start of each step; they
 measure one-step generalisation, not error accumulation in a rollout. The CSV includes the training-data fingerprint,
 fit time, overall RMSE and mean absolute error where the true next temperature is 1,800-2,000 K. Checkpoints are
 saved separately by order so the later rollout can use exactly the fitted coefficients.
+
+`models/linear_filter_rollout.py` uses the shared evaluation harness with each model's own predictions. It writes
+per-run metrics to `results/eval/` and an order comparison to `results/linear_filter_rollout_val_s5.csv`.
+The ordinary least-squares fit gave good one-step errors, but all three orders ran away in validation rollouts:
+fine mesh modes grow when predictions are fed back into the model. These results are retained as the original
+baseline, including the failed long-horizon behavior.
 
 ## Evaluation
 

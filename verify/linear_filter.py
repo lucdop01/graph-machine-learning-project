@@ -7,7 +7,8 @@ import numpy as np
 
 from graphs.dataset import train_fingerprint
 from graphs.mesh import get_mesh
-from models.linear_filter import FilterBasis, fit_filter, predict_next
+from evaluation.rollout import rollout
+from models.linear_filter import FilterBasis, LinearFilterPredictor, fit_filter, predict_next
 
 
 class SyntheticRun:
@@ -19,9 +20,16 @@ class SyntheticRun:
         self.frame_us = 13.34
         self._T, self._E = temperatures, laser
         self.last = len(temperatures) - 1
+        self.t = np.arange(len(temperatures)) * self.frame_us * 1e-6
 
     def _read(self, key, start, stop):
         return (self._T if key == "T" else self._E)[start:stop]
+
+    def T(self, k):
+        return self._T[k]
+
+    def laser(self, k, stride):
+        return self._E[k:k + stride].sum(axis=0)
 
 
 def main():
@@ -48,9 +56,12 @@ def main():
     np.testing.assert_allclose(fitted["weights"], weights, rtol=0, atol=1e-8)
     np.testing.assert_allclose(predict_next(basis, frames[0], laser[0], fitted), frames[1],
                                rtol=0, atol=1e-8)
+    predictor = LinearFilterPredictor(fitted, stats)
+    simulated = rollout(run, predictor, stride=1)
+    np.testing.assert_allclose(simulated["T"], run._T[1:], rtol=0, atol=1e-7)
     if fitted["one_step_rmse_K"] > 1e-5:
         raise AssertionError("synthetic one-step fit did not recover the exact transitions")
-    print("LF-T: constant field, temperature-shift invariance, and coefficient recovery pass")
+    print("LF-T: constant field, coefficient recovery, and synthetic rollout pass")
 
 
 if __name__ == "__main__":
