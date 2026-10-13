@@ -1,0 +1,113 @@
+{
+ "predictor": "a_seed2",
+ "split": "test_path",
+ "mesh": [
+  "l_turn seed 0",
+  "zigzag seed 0"
+ ],
+ "stride": 5,
+ "step_us": 66.69588270958498,
+ "runs": 20,
+ "nrmse_mean": 0.17347490225588233,
+ "nrmse_median": 0.16673727700854307,
+ "nrmse_max": 0.2660698483166235,
+ "melt_mae": 319.2068852603053,
+ "melt_points": 75126,
+ "iou": {
+  "runs": 20,
+  "iou": 0.30247302799154574,
+  "iou_soft": 0.30348337008182374,
+  "runs_with_union": 14
+ },
+ "iou_by_bin": {
+  "small": {
+   "runs": 2,
+   "iou": 0.0,
+   "iou_soft": 0.013052653854544873,
+   "runs_with_union": 2
+  },
+  "medium": {
+   "runs": 4,
+   "iou": 0.1895924566530533,
+   "iou_soft": 0.19484185567569107,
+   "runs_with_union": 4
+  },
+  "large": {
+   "runs": 8,
+   "iou": 0.30844383473738934,
+   "iou_soft": 0.3092983183483261,
+   "runs_with_union": 8
+  },
+  "none": {
+   "runs": 6,
+   "iou": null,
+   "iou_soft": null,
+   "runs_with_predicted_pool": 0
+  }
+ },
+ "solidification": {
+  "med": -0.496701884246518,
+  "med_abs": 0.5018335580238138,
+  "melted_ref": 13679,
+  "melted": 7629,
+  "compared": 7559,
+  "missed": 6092,
+  "spurious": 42,
+  "unfinished_ref": 28,
+  "unfinished": 0
+ },
+ "cadence": {
+  "med": -0.04292050119292611,
+  "med_abs": 0.08490363692438484,
+  "melted_ref": 14573,
+  "melted": 13679,
+  "compared": 13651,
+  "missed": 894,
+  "spurious": 0,
+  "unfinished_ref": 0,
+  "unfinished": 28
+ },
+ "energy": {
+  "a": {
+   "median": 0.19508965295773423,
+   "max": 0.3682060584896875
+  },
+  "b": {
+   "median": 0.19508965295773423,
+   "max": 0.3682060584896875
+  },
+  "end": {
+   "median": -0.19508965295773423,
+   "max": 0.3682060584896875
+  }
+ },
+ "budget": {
+  "a": {
+   "median": 0.19347553239525397,
+   "max": 0.3665366357602047
+  },
+  "b": {
+   "median": 0.19347553239525397,
+   "max": 0.3665366357602047
+  },
+  "end": {
+   "median": -0.19347553239525397,
+   "max": 0.3665366357602047
+  }
+ },
+ "wall_s": 27.129119300025195,
+ "steps": 890,
+ "size_bins": {
+  "edges_m2": [
+   1.9754550633443152e-09,
+   5.842003519340709e-09
+  ],
+  "source": "train split, mesh seed 0",
+  "runs": 150,
+  "runs_with_pool": 74,
+  "definition": "terciles of the peak melt-pool area (melted fraction above 0.5, node areas, every saved frame) over the runs with a pool; small <= edge 1 < medium <= edge 2 < large; none = no pool",
+  "train_fingerprint": "a134269f75ce9513"
+ },
+ "mesh_seed": 0,
+ "checkpoint": "checkpoints/a_seed2/best.pt"
+}

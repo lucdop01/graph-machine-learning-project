@@ -22,6 +22,23 @@ SampleBuilder builds these inputs from any state T0 at frame k. Training samples
 frame k + stride as the target); rollouts (evaluation/torch_predictor.py) pass the model's own previous output and get
 no T_next or H_next. So the features are built one way only.
 
+Training noise (MeltPoolGraphs noise_std, in K, default 0): Gaussian noise is added to the true temperature at frame k
+before the sample is built, so the features (T, phi) and the raw T and H use the noisy state, and the target
+T_next - T is the true next frame minus the noisy input: the model learns to correct its own errors (Pfaff et al.).
+The noise comes from torch's global random generator (seeded by the training script; a DataLoader seeds each worker).
+With noise_std 0 no random number is drawn and the samples are exactly those without noise.
+
+Training augmentation (MeltPoolGraphs augment, default False): each training sample gets one random orthogonal
+transform Q, a reflection (y -> -y) with probability 0.5 followed by a rotation by an angle drawn uniformly from
+0-360 degrees. Q is applied to the raw edge vectors x_source - x_target before they are normalised, and to pos, so
+the whole sample is rotated or reflected: plate, mesh, temperature and laser field together. Edge lengths, node
+features (all direction-free), volumes and targets do not change. Conduction is isotropic and the plate edges are
+adiabatic, so a transformed sample is as valid as the original; the model can no longer tie its predictions to the
+coordinate frame (all train tracks move in +x). Q comes from torch's global random generator after the noise, so a
+resumed run draws the same transforms, and with augment False no extra number is drawn. Validation, rollouts and every
+evaluation use the samples as they are (SampleBuilder.sample without rotation). The edge statistics stay those of
+the untransformed train split (the two component scales differ by 0.2%).
+
 Normalisation statistics come from the train split on mesh seed 0 only and are saved to
 data/graphs/norm_stride<s>.json: mean and standard deviation of T, phi and E, of the edge features, and of the
 one-step changes dT and dH (the targets of the temperature and enthalpy models). Every node of every sample counts
@@ -304,26 +321,46 @@ class SampleBuilder:
     def __init__(self, stats, stride, device=None):
         require_torch("SampleBuilder")
         self.stats, self.stride, self.device = stats, check_stride(stride), device
-        self._static = {}
+        self._static, self._geometry = {}, {}
+
+    def _edge_attr(self, rel, dist):
+        s = self.stats["edge"]
+        ea = np.c_[(rel - s["rel"]["mean"]) / s["rel"]["std"], (dist - s["dist"]["mean"]) / s["dist"]["std"]]
+        return torch.tensor(ea, dtype=torch.float32)
 
     def mesh_tensors(self, run):
         key = (run.mesh.name, run.mesh.seed)
         if key not in self._static:
-            m, s = run.mesh, self.stats["edge"]
+            m = run.mesh
             rel, dist = m.edge_vectors()
-            ea = np.c_[(rel - s["rel"]["mean"]) / s["rel"]["std"], (dist - s["dist"]["mean"]) / s["dist"]["std"]]
-            st = dict(edge_index=torch.from_numpy(m.edge_index), edge_attr=torch.tensor(ea, dtype=torch.float32),
+            st = dict(edge_index=torch.from_numpy(m.edge_index), edge_attr=self._edge_attr(rel, dist),
                       rev_edge=torch.from_numpy(m.rev), pos=torch.tensor(m.pos, dtype=torch.float32),
                       boundary=torch.from_numpy(m.boundary))
             self._static[key] = {k: v.to(self.device) for k, v in st.items()} if self.device is not None else st
+            self._geometry[key] = (rel, dist, np.asarray(m.pos, dtype=np.float64))
         return self._static[key]
 
-    def sample(self, run, k, T0, T_next=None):
+    def transformed(self, run, rotation):
+        """edge_attr and pos of the run's mesh after the orthogonal 2 x 2 transform rotation (new tensors; the
+        cached ones are not touched)."""
+        self.mesh_tensors(run)
+        rel, dist, pos = self._geometry[(run.mesh.name, run.mesh.seed)]
+        Q = np.asarray(rotation, dtype=np.float64)
+        if Q.shape != (2, 2) or not np.allclose(Q @ Q.T, np.eye(2), atol=1e-12):
+            raise ValueError(f"rotation must be an orthogonal 2 x 2 matrix, not {Q.tolist()}")
+        out = dict(edge_attr=self._edge_attr(rel @ Q.T, dist), pos=torch.tensor(pos @ Q.T, dtype=torch.float32))
+        return {k: v.to(self.device) for k, v in out.items()} if self.device is not None else out
+
+    def sample(self, run, k, T0, T_next=None, rotation=None):
+        """rotation: None, or an orthogonal 2 x 2 matrix applied to the edge vectors and pos (training augmentation,
+        see the module docstring)."""
         s, n = self.stride, self.stats["node"]
         T0 = np.asarray(T0, dtype=np.float64)
         E = run.laser(k, s)
         phi = run.phi(T0)
         st = self.mesh_tensors(run)
+        if rotation is not None:
+            st = {**st, **self.transformed(run, rotation)}
         z = lambda x, key: (x - n[key]["mean"]) / n[key]["std"]
         x = np.c_[z(T0, "T"), z(phi, "phi"), z(E, "E"), run.mesh.boundary]
         f32 = lambda a: torch.tensor(a, dtype=torch.float32, device=self.device)
@@ -333,12 +370,27 @@ class SampleBuilder:
         return GraphSample(x=f32(x), **st, **raw, t=float(run.t[k]), k=k, stride=s, run=run.name)
 
 
-class MeltPoolGraphs(Dataset):
-    """All one-step samples of one split at one stride. Pass stats to override the saved training statistics."""
+def random_orthogonal():
+    """A random orthogonal 2 x 2 matrix from torch's global generator: a reflection y -> -y with probability 0.5,
+    then a rotation by a uniform angle (together uniform over all rotations and reflections)."""
+    u = torch.rand(2, dtype=torch.float64).tolist()
+    c, s = np.cos(2 * np.pi * u[0]), np.sin(2 * np.pi * u[0])
+    return np.array([[c, -s], [s, c]]) @ np.diag([1.0, -1.0 if u[1] < 0.5 else 1.0])
 
-    def __init__(self, split, stride=5, mesh_seed=0, root=OUT, index=INDEX, stats=None, preload=True):
+
+class MeltPoolGraphs(Dataset):
+    """All one-step samples of one split at one stride. Pass stats to override the saved training statistics.
+    noise_std: standard deviation (K) of the training noise on the input temperature; augment: a random rotation and
+    reflection per sample (both: see the module docstring; for training only)."""
+
+    def __init__(self, split, stride=5, mesh_seed=0, root=OUT, index=INDEX, stats=None, preload=True, noise_std=0.0,
+                 augment=False):
         require_torch("MeltPoolGraphs")
         stride = check_stride(stride)
+        noise_std = float(noise_std)
+        if not (np.isfinite(noise_std) and noise_std >= 0):
+            raise ValueError(f"noise_std must be a finite number of kelvin, at least 0, not {noise_std!r}")
+        self.noise_std, self.augment = noise_std, bool(augment)
         self.runs = load_runs(split, mesh_seed, root, index, preload)
         self.split, self.stride = split, stride
         self.index = [(i, k) for i, run in enumerate(self.runs) for k in run.starts(stride)]
@@ -361,7 +413,11 @@ class MeltPoolGraphs(Dataset):
         return len(self.index)
 
     def sample(self, run, k):
-        return self.builder.sample(run, k, run.T(k), run.T(k + self.stride))
+        T0 = run.T(k)
+        if self.noise_std > 0:
+            T0 = T0 + self.noise_std * torch.randn(T0.shape, dtype=torch.float64).numpy()
+        rotation = random_orthogonal() if self.augment else None     # after the noise: same noise with or without
+        return self.builder.sample(run, k, T0, run.T(k + self.stride), rotation)
 
     def __getitem__(self, i):
         r, k = self.index[i]

@@ -15,7 +15,8 @@ moving over a thin Ti-6Al-4V plate, with melting.
 | Data generator (`data/generate.py`) | Done, cools every run until fully solid; full run checked on every split |
 | Graph preprocessing (`graphs/`) | Done: meshes, node data, PyTorch Geometric dataset; energy check passes (check 7) |
 | Rollout and evaluation harness (`evaluation/`) | Done: rollouts, metrics, selection score, reference predictors; the solver's own frames score zero (check 8) |
-| U-Net grid, Laplacian, partitions, models, training, analysis | To do (`graphs/`, `models/`, `analysis/` list the planned modules) |
+| Model A and the training pipeline (`models/`, `configs/`) | Three seeds without augmentation done and evaluated (`results/eval/a_seed*`); three seeds with augmentation to do |
+| GCN, models B-D, U-Net grid, Laplacian, partitions, analysis | To do (`graphs/`, `models/`, `analysis/` list the planned modules) |
 
 ## Setup
 
@@ -24,7 +25,13 @@ python -m venv .venv && source .venv/bin/activate
 pip install numpy scipy h5py pyyaml matplotlib jupyter     # enough for the solver, data and graph preprocessing
 # for the models: install torch for your CUDA version (https://pytorch.org), then
 pip install torch_geometric
+python -c "import torch; print(torch.__version__, torch.cuda.is_available())"   # must print True for training
 ```
+
+AMD GPUs: AMD's ROCm build of PyTorch reports the GPU as `cuda`, so the code runs unchanged. On native Windows it needs
+Python 3.12 and a supported card (for example the RX 7900 XTX); see AMD's "PyTorch via PIP installation" page for
+Radeon on Windows. AMD lists no training support on native Windows, so compare a training step on the GPU with the CPU
+before long runs. WSL2 with ROCm is the supported alternative.
 
 ## Quick start
 
@@ -44,6 +51,7 @@ python -m graphs.figures                     # mesh and interpolation figures in
 python -m verify.harness                     # check 8: the harness scores the solver's own frames, under a minute
 python -m evaluation.rollout --size-bins     # melt-pool size bins from the train split (once)
 python -m evaluation.rollout --split val --stride 5 --predictor oracle   # rollout metrics in results/eval/
+python -m models.train --config configs/model_a.yaml --steps 2000 --name smoke   # training smoke run (GPU)
 ```
 
 Generated runs go to `data/runs/` (git-ignored) and the index to `data/splits.json` (commit this one).
@@ -217,12 +225,18 @@ Conventions:
   Runs without a pool form the bin "none".
 - week1 has constant properties without melting and saves a frame every 26.52 us. The melting-range error, IoU and
   solidification are not computed for it.
+- Material table outside its range: the Ti-6Al-4V table of `solver/ti64.py` covers 300 to 6,000 K and clamps outside.
+  Everything after the solver (`graphs/preprocess.py` `material()`: node data, datasets, `TorchPredictor` and the
+  energy here) continues it as a straight line, H = cp(300 K) (T - 300 K) below 300 K (547.54 J/kg K) and the slope
+  cp(T_L) = 759.74 J/kg K above 6,000 K. So a prediction below 300 K counts in the energy error, and a dH model with
+  H + dH < 0 is not set to 300 K. Inside the range nothing changes, bit for bit; the solver keeps its own table.
 - Split summaries: nRMSE is the mean over runs. The melting-range error is pooled over every (node, frame) pair of the
   split. IoU adds up intersections and unions over the runs, overall and per size bin. Solidification medians are taken
   over every compared node of the split. Energy errors are given as the median and the maximum over runs.
 
 Reference predictors: `oracle` (the true frames), `persistence` (keeps its state), `offset` (the true frames plus
-10 K) and `cross` (test_fine only: the paired 10 um run, which gives the 10 vs 5 um gap for every metric).
+10 K) and `cross` (test_fine only: the paired 10 um run, which gives the 10 vs 5 um gap for every metric). A trained
+model is evaluated with `--checkpoint` (see Models and training).
 
 **Check 8** (`verify/harness.py`) feeds the solver's own frames in as predictions. On its own runs (straight 120 and
 150 W at 0.65 m/s, straight 195 W at 0.5 m/s, zigzag 190 W at 0.66 m/s, and a week1 run), at strides 5 and 2:
@@ -231,8 +245,10 @@ Reference predictors: `oracle` (the true frames), `persistence` (keeps its state
 |---|---|
 | oracle | nRMSE, melting-range error, energy error and solidification error 0; IoU 1, hard and soft, in every size bin; 0 missed and 0 spurious nodes |
 | offset +10 K | melting-range error 10 K; nRMSE and energy error equal to their closed forms |
+| offset -10 K | the same; cold nodes go below 300 K, and the closed form writes the extended table out itself, so it fails if the extension is removed |
 | persistence | nRMSE 1 (it stays at 300 K), IoU 0, every melted node missed |
-| oracle through `TorchPredictor`, dT and dH | float32 rounding only: every node temperature within 1e-3 K, nRMSE about 2e-8, energy (a) below 2e-6 |
+| oracle through `TorchPredictor`, dT and dH | float32 rounding only: every node temperature within 1e-3 K, nRMSE about 2e-8, energy (a) below 2e-6. The dummy model adds 10 K in training mode and is switched to training mode before every rollout, so a predictor that does not set evaluation mode fails |
+| material table | the solver's table bit for bit between 300 and 6,000 K; outside, the straight lines with H and T inverse to within 1e-9 K |
 
 The oracle's energy budget, the preprocessing mismatch, is at most 0.49% (a) and 0.32% (b) at stride 5. Cadence error
 of solidification on the same runs (median signed / median absolute relative error; fully melted nodes missed, and
@@ -256,6 +272,115 @@ python -m evaluation.rollout --split val --stride 5 --predictor oracle     # res
 python -m evaluation.rollout --split test_fine --stride 5 --predictor cross   # the 10 vs 5 um gap
 python -m evaluation.rollout --benchmark --splits val test_path --runs 2 --predictor persistence   # speedup timing
 ```
+
+## Models and training
+
+**Model A** (`models/model_a.py`, backbone in `models/backbone.py`): MeshGraphNet (Pfaff et al.), encode-process-decode.
+A node MLP encodes the node features and an edge MLP the edge features, both to width 128. 15 processor blocks follow.
+Each block first updates every edge from its own latent and the latents of its two nodes, then every node from its own
+latent and the sum of its incoming edge latents, both with a residual connection. Messages go from `edge_index[0]` to
+`edge_index[1]`. Every MLP has two hidden layers of 128 with ReLU and LayerNorm on its output, except the decoder,
+which gives one value per node, the normalised dT. 2,331,905 parameters. 15 blocks at about 10 um reach 150 um, more
+than the 106 um that heat and laser cover in one 66.7 us step. Models B, C and D will reuse the backbone.
+The first layer of each edge MLP acts on [e_ij, h_i, h_j]. Its node parts are computed once per node and then gathered
+for each edge, which is the same function with the same parameters (checkpoints are unchanged), but about a third less
+matrix work in the edge MLPs, which take most of a training step.
+
+**Training** (`models/train.py`, settings in `configs/model_a.yaml`):
+
+- Loss: mean squared error of the normalised target, (dT - mean) / std with the train statistics, over every node of
+  the batch, each node weighted equally.
+- Noise: Gaussian noise on the input temperature with std = noise x 358 K, the train spread of T (0.003, 0.01 and 0.03
+  give 1.1, 3.6 and 10.7 K). The melted fraction and enthalpy follow from the noisy temperature, and the target is the
+  true next frame minus the noisy input, so the model learns to correct its own errors.
+- Augmentation (`augment`, required in the configuration): each training sample is reflected (y -> -y) with
+  probability 0.5 and rotated by a uniform random angle. The transform is applied to the raw edge vectors before
+  normalisation and to the node positions, so the whole sample turns: plate, mesh, temperature and laser field. Edge
+  lengths, node features, volumes and targets do not change. Conduction is isotropic and the plate edges are
+  adiabatic, so every transformed sample is physically valid. Validation and evaluation are never augmented. Added on
+  13 Oct 2026, after model A trained without it deposited too little laser heat on test_path wherever the situation
+  differed from training (laser moving +x into a cold plate). The runs `a_seed0`-`a_seed2` are that setup and are kept
+  as the ablation. Rotations fix only the direction part: a laser next to an earlier, still hot track does not occur
+  in training either way. Every configuration must set `augment` (training refuses one without it, so a new model's
+  configuration copies `augment: true` from `configs/model_a.yaml`), and the checkpoint records it. A resumed run
+  keeps its own setting; runs saved before the setting existed resume without augmentation.
+- Precision (`precision`, also `--precision`, required in the configuration): with `bf16` the training forward pass
+  runs under autocast, so the hidden matrix products of the encoders and the processor use bf16 (the GPU's matrix
+  units); the weights, Adam state, the encoders' first layers on the raw features, LayerNorm, residual streams, edge
+  sums, decoder and loss stay fp32. Validation and every evaluation run in fp32. The same setting is used for every
+  model, and the checkpoint records it. `fp32` trains entirely in fp32.
+- Adam, 4 graphs per step, learning rate decaying exponentially from lr to lr_end = 1e-6 over the run's own length,
+  100,000 steps (about 22 epochs at stride 5). Each epoch is a permutation of the train samples drawn from the seed and
+  the epoch number; the incomplete last batch is dropped.
+- Selection: every 2,000 steps and at the end, the selection score (mean rollout nRMSE over the 20 val runs) through
+  `TorchPredictor` on the training device. The checkpoint with the lowest score is kept.
+- Failures: a validation rollout that becomes non-finite scores inf, is logged with its run and frame and is never
+  selected, and training goes on. A non-finite training loss or gradient norm stops the run (the message names the
+  step), as do code errors and statistics or size bins that do not fit the current processed train split.
+- Verified transfers (`evaluation/torch_predictor.py`): on the RX 7900 XTX (ROCm, native Windows) one tuning run
+  stopped because a GPU-to-CPU read returned the previous read's value. So on a GPU every transfer that a result
+  depends on is checked. Reads from the GPU (the log statistics, the finite-weights check, checkpoint copies and
+  predictions) carry fresh markers and an exact checksum and are read again if they do not fit. Weights, Adam state
+  and mesh tensors uploaded to the GPU are compared with their source by checksum and uploaded again if they differ.
+  Each rollout step's input is uploaded and checked in the same read as its prediction. After 3 failed tries the
+  program stops with StaleReadError (`--resume` continues a training run). The training batches are not checked. The
+  checks add a few percent to a GPU rollout step, and the speedup benchmark includes them. On a CPU nothing changes.
+- Output in `checkpoints/<run>/` (git-ignored): `best.pt`, `last.pt` (with the optimiser and random generator states),
+  `log.csv` (learning rate, train loss, gradient norm, time per step, validation score) and `config.yaml`. A
+  checkpoint carries the model configuration, the train statistics, the stride, the target, the train fingerprint and
+  the size bins, so it is evaluated with what it was trained with.
+- `--resume` continues from `last.pt`. The learning rate and the data order follow from the step, and the random
+  states are restored, so with `num_workers: 0` the run continues exactly (bit for bit on a CPU; on a GPU the
+  scatter-sum is not bit-reproducible).
+- Cost on an RX 7900 XTX (ROCm 7.2.1, Windows), before the split edge layer: the 2,000-step smoke run in fp32 took
+  266 ms per step (data loading about 5 ms), 14.6 s per validation and 7.35 GiB, so about 7.6 h per 100,000 steps.
+  A separate timing of the training step alone (no data loading) gave 256 ms in fp32 and 145 ms in bf16 (4.94 GiB).
+  Every run prints its own numbers at the end.
+
+Tuning, on model A only: six runs of 20,000 steps with seed 0, noise 0.003, 0.01 or 0.03 times lr 1e-4 or 3e-4, picked
+by the validation score. The chosen values are then fixed for every model, and each model gets seeds 0, 1 and 2 at
+100,000 steps. Result (12 Oct 2026): noise 0.03 and lr 3e-4 (in `configs/model_a.yaml`). That setting had the lowest
+score at 9 of the 10 validations, and lr 3e-4 and noise 0.03 were each better at every level of the other. Both values
+are at the edge of the tuned range. The tuning ran without augmentation; the values are kept for the augmented runs.
+Before tuning, one paired control decides the precision: the same run (noise 0.01, lr 1e-4, seed 0,
+20,000 steps) in bf16 and in fp32, both evaluated on the val split. bf16 stays unless it is clearly worse, for example
+about 5% higher nRMSE or about 1 K more melting-range error; a borderline result is repeated with a second seed.
+
+```bash
+python -m models.train --config configs/model_a.yaml --steps 2000 --name smoke          # time per step, GPU memory
+python -m models.train --config configs/model_a.yaml --noise 0.01 --lr 1e-4 --steps 20000 --name a_tune_n0.01_lr1e-4
+python -m models.train --config configs/model_a.yaml --noise 0.01 --lr 1e-4 --steps 20000 --precision fp32 --name a_tune_n0.01_lr1e-4_fp32
+python -m evaluation.rollout --split val --checkpoint checkpoints/a_tune_n0.01_lr1e-4/best.pt --device cuda
+python -m evaluation.rollout --split val --checkpoint checkpoints/a_tune_n0.01_lr1e-4_fp32/best.pt --device cuda
+python -m models.train --config configs/model_a.yaml --seed 1 --name a_aug_seed1         # tuned values, augmentation on
+python -m models.train --name a_aug_seed1 --resume                                       # continue a stopped run
+python -m evaluation.rollout --split test_interp --checkpoint checkpoints/a_aug_seed1/best.pt --device cuda
+python -m evaluation.rollout --benchmark --checkpoint checkpoints/a_aug_seed1/best.pt --device cuda   # speedup
+```
+
+**Results, model A without augmentation** (`a_seed0`-`a_seed2`, 13 Oct 2026, files `results/eval/a_seed*`). Best
+validation scores 0.00364, 0.00365 and 0.00352 (steps 70,000, 76,000 and 86,000); each val evaluation equals its log
+to 1e-9. Test splits, mean and sample standard deviation over the three seeds, stride 5:
+
+| Split | nRMSE | Melting-range MAE | IoU | Energy error (a), median |
+|---|---|---|---|---|
+| test_interp | 0.0043 +/- 0.0002 | 6.5 +/- 0.1 K | 0.964 +/- 0.001 | 0.89 +/- 0.55% |
+| test_interp, mesh seed 1 | 0.0068 +/- 0.0003 | 7.6 +/- 0.1 K | 0.959 +/- 0.001 | 0.95 +/- 0.37% |
+| test_extrap | 0.0136 +/- 0.0002 | 19.8 +/- 1.5 K | 0.924 +/- 0.003 | 1.17 +/- 0.01% |
+| test_path | 0.173 +/- 0.007 | 319 +/- 6 K | 0.302 +/- 0.002 | 19.3 +/- 1.0% |
+| test_fine (5 um truth) | 0.0056 +/- 0.0002 | 7.4 +/- 0.2 K | 0.955 +/- 0.003 | 0.91 +/- 0.59% |
+| test_large | 0.0104 +/- 0.0015 | 4.7 +/- 0.0 K | 0.971 +/- 0.001 | 3.86 +/- 0.55% |
+
+Persistence scores nRMSE 1, IoU 0 and a melting-range MAE of about 1,590 K on every split. On test_fine the 10 vs
+5 um solver gap (`cross`) is nRMSE 0.0051, 4.6 K and IoU 0.976, so A comes close to it in nRMSE. On test_large the
+energy drifts upwards by about 4% of the input by the end of these longer runs.
+
+test_path fails for all three seeds. With seed 0 every L-turn ends 9-12% below the true energy and every zigzag
+28-38%, also runs without a melt pool.
+Predicted from the true state, A adds 98% of a step's laser energy when the laser moves +x into a cold plate (the
+training situation), 54-79% after the L-turn (+y), about 40% on a -x leg beside an earlier track and 23-40% on a +x
+leg beside a hot track. So A learned the training situation, both the laser direction and the cold surroundings. The
+augmentation above addresses the direction; nothing in training covers the hot surroundings.
 
 ## Evaluation notes
 
@@ -342,9 +467,11 @@ verify/      energy_balance.py, rosenthal.py, stefan.py, convergence.py, cooling
 data/        generate.py, splits.json, meshes/ (commit), runs/ and graphs/ (git-ignored)
 graphs/      mesh.py, preprocess.py, dataset.py, figures.py; planned: grid, laplacian, partition
 evaluation/  metrics.py, rollout.py (rollouts, evaluation, reference predictors, command line), torch_predictor.py
-models/      planned: linear filters, U-Net, GCN, MeshGraphNet backbone, models A-D
+models/      backbone.py (encode-process-decode), model_a.py (MeshGraphNet), train.py (training, checkpoints);
+             planned: linear filters, U-Net, GCN, models B-D
 analysis/    planned: probes, attribution, spectra
-configs/     one yaml per model and ablation
+configs/     model_a.yaml; one yaml per model and ablation
 notebooks/   project.ipynb (course requirement)
 results/     eval/ (rollout metrics), figures/ (git-ignored)
+checkpoints/ one folder per training run (git-ignored)
 ```

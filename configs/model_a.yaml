@@ -1,0 +1,29 @@
+# Model A, MeshGraphNet (plan step 4). python -m models.train --config configs/model_a.yaml --name <run>
+# Command-line overrides for tuning and seeds: --noise, --lr, --steps, --seed, --precision, --name; --resume continues
+# a run.
+model:
+  name: model_a
+  width: 128              # latent width of every MLP
+  layers: 15              # processor blocks: 15 x about 10 um covers the 106 um that heat and laser reach in one step
+  hidden_layers: 2        # hidden layers per MLP
+data:
+  stride: 5               # saved frames per model step: 5 x 13.34 us = 66.7 us
+training:
+  steps: 100000           # 100,000 steps of 4 graphs, about 22 epochs of the 18,253 train samples (tuning: 20,000)
+  batch_size: 4
+  lr: 3.0e-4              # Adam, start of the exponential decay. Tuned on model A (12 Oct 2026, 1e-4 or 3e-4,
+                          # 20,000 steps, seed 0): 3e-4 was better at every noise level
+  lr_end: 1.0e-6          # reached at the last step of the run
+  noise: 0.03             # input noise std as a fraction of the train spread of T, 358 K, so 10.7 K. Tuned on model A
+                          # (0.003, 0.01 or 0.03): 0.03 was better at both learning rates. Fixed for every model
+  seed: 0
+  val_every: 2000         # validation rollouts (selection score over the 20 val runs) and checkpoints
+  log_every: 100
+  num_workers: 0          # DataLoader workers; 0 on Windows, and needed for an exact --resume
+  device: cuda            # training stops if CUDA is not available
+  augment: true           # each training sample rotated by a uniform random angle and, with probability 0.5,
+                          # reflected (edge vectors and positions; conduction is isotropic). Added 13 Oct 2026 after
+                          # A's test_path results; the runs a_seed0-2 are the same setup without it
+  precision: bf16         # bf16 hidden matrix products in training (inputs, weights, LayerNorm, decoder, loss and
+                          # validation in fp32);
+                          # fp32 for the control run (--precision fp32)
