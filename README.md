@@ -15,7 +15,8 @@ moving over a thin Ti-6Al-4V plate, with melting.
 | Data generator (`data/generate.py`) | Done, cools every run until fully solid; full run checked on every split |
 | Graph preprocessing (`graphs/`) | Done: meshes, node data, PyTorch Geometric dataset; energy check passes (check 7) |
 | Rollout and evaluation harness (`evaluation/`) | Done: rollouts, metrics, selection score, reference predictors; the solver's own frames score zero (check 8) |
-| U-Net grid, Laplacian, partitions, models, training, analysis | To do (`graphs/`, `models/`, `analysis/` list the planned modules) |
+| Laplacian and LF-T least-squares fit | Done; validation rollout and order selection remain |
+| U-Net grid, partitions, other models, training, analysis | To do (`graphs/`, `models/`, `analysis/` list the planned modules) |
 
 ## Setup
 
@@ -40,6 +41,9 @@ python -m graphs.preprocess                  # every run onto its mesh, data/gra
 python -m graphs.preprocess --splits test_interp --mesh-seed 1   # the new-mesh test
 python -m verify.graph_energy --dataset      # graph energy check over every run in data/splits.json
 python -m graphs.dataset --stride 5          # train normalisation statistics, sample counts per split
+python -m verify.laplacian                   # physical Laplacian checks on every committed mesh
+python -m verify.linear_filter               # LF-T basis and synthetic fit checks
+python -m models.linear_filter --order 3      # fit LF-T on train only; checkpoint in checkpoints/
 python -m graphs.figures                     # mesh and interpolation figures in results/figures/
 python -m verify.harness                     # check 8: the harness scores the solver's own frames, under a minute
 python -m evaluation.rollout --size-bins     # melt-pool size bins from the train split (once)
@@ -173,6 +177,17 @@ Over the full dataset (every run in `data/splits.json`, and test_interp again on
 | test_large | 10 | 0.67% | 0.29% | 0.16% | 32 um |
 
 All 355 checks pass. "Laser per step" is the larger of the 5-frame and 2-frame values.
+
+## Linear graph filter baseline (LF-T)
+
+`graphs/laplacian.py` builds the area-lumped cotangent diffusion operator L from the triangles. For each mesh,
+`models/linear_filter.py` scales L by an upper bound on its spectral radius and builds Chebyshev features
+F_k(T) = (Chebyshev_k(I + 2 L / radius) - I) T. Removing the constant response makes every F_k zero on a uniform
+temperature field. The filter fits T_next = T + sum_{k=1}^K a_k F_k(T) + b E, where E is the laser energy per volume
+over the model step. This is a polynomial in L, equivalent to the planned sum of Laplacian powers but numerically
+scaled. There is no intercept. The fit uses ordinary least squares on **train only** and saves its coefficients,
+training-data fingerprint and one-step diagnostics in `checkpoints/` (git-ignored). `--order` selects K; validation
+rollouts, rather than training error, will be used to choose it.
 
 ## Evaluation
 
