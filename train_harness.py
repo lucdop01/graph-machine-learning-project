@@ -9,10 +9,10 @@ Supports:
   - Atomic checkpoint writing with Windows file lock retries
 
 Usage:
-  python -m models.train_harness --config configs/model_a.yaml
-  python -m models.train_harness --config configs/model_a.yaml --sweep --trials 6
-  python -m models.train_harness --config configs/model_a.yaml --multi-seed --seeds 0 1 2
-  python -m models.train_harness --resume --name model_a_run
+  python train_harness.py --config configs/model_a.yaml
+  python train_harness.py --config configs/model_a.yaml --sweep --trials 6
+  python train_harness.py --config configs/model_a.yaml --multi-seed --seeds 0 1 2
+  python train_harness.py --resume --name model_a_run
 """
 
 from __future__ import annotations
@@ -113,7 +113,7 @@ def load_known_model(key: str, name: str) -> type[torch.nn.Module]:
             raise NotImplementedError(
                 f"Model '{name}' is specified in configuration, but {module_path}.py has not been "
                 f"implemented yet. Please implement {module_path}.py or register it with "
-                f"models.train_harness.register_model."
+                f"train_harness.register_model."
             ) from e
         raise
     except AttributeError as e:
