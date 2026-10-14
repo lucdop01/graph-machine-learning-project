@@ -229,6 +229,26 @@ def grad_norm(model: torch.nn.Module) -> torch.Tensor:
 
 # ---------------------------------------------------------------- data streaming & RNG
 
+def set_all_seeds(seed: int):
+    """Seed Python random, NumPy, PyTorch CPU and CUDA generators for full reproducibility."""
+    os.environ["PYTHONHASHSEED"] = str(seed)
+    random.seed(seed)
+    np.random.seed(seed)
+    torch.manual_seed(seed)
+    if torch.cuda.is_available():
+        torch.cuda.manual_seed(seed)
+        torch.cuda.manual_seed_all(seed)
+    torch.backends.cudnn.deterministic = True
+    torch.backends.cudnn.benchmark = False
+
+
+def seed_worker(worker_id: int):
+    """Seed DataLoader worker process deterministically from the PyTorch generator seed."""
+    worker_seed = (torch.initial_seed() + worker_id) % (2**32)
+    np.random.seed(worker_seed)
+    random.seed(worker_seed)
+
+
 def epoch_batches(n: int, batch_size: int, seed: int, epoch: int) -> list[list[int]]:
     """Batches of one epoch: reproducible pseudo-random permutation split into full batches."""
     k = n // batch_size
@@ -244,7 +264,13 @@ def batch_stream(dataset: Any, step: int, t: dict[str, Any]):
     gen = torch.Generator().manual_seed(t["seed"])
     while True:
         batches = epoch_batches(len(dataset), t["batch_size"], t["seed"], epoch)[first:]
-        yield from DataLoader(dataset, batch_sampler=batches, num_workers=t["num_workers"], generator=gen)
+        yield from DataLoader(
+            dataset,
+            batch_sampler=batches,
+            num_workers=t["num_workers"],
+            generator=gen,
+            worker_init_fn=seed_worker,
+        )
         epoch, first = epoch + 1, 0
 
 
@@ -595,9 +621,7 @@ def train(cfg: dict[str, Any], name: str, ckpt: dict[str, Any] | None = None) ->
     optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate(0, t))
 
     if ckpt is None:
-        random.seed(t["seed"])
-        np.random.seed(t["seed"])
-        torch.manual_seed(t["seed"])
+        set_all_seeds(t["seed"])
         init_fresh_run(os.path.join(CKPT_DIR, name), files["config.yaml"], files["log.csv"], cfg)
         step, best, best_step, elapsed0 = 0, math.inf, None, 0.0
     else:
