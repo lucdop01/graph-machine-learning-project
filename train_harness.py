@@ -587,6 +587,9 @@ def train(cfg: dict[str, Any], name: str, ckpt: dict[str, Any] | None = None) ->
     train_set, val_runs, stats, bins, mean, std = setup_data_and_stats(
         stride, target, t["noise"], t["augment"], ckpt
     )
+    set_stats_fn = getattr(model, "set_stats", None)
+    if callable(set_stats_fn):
+        set_stats_fn(mean, std)
 
     predictor = TorchPredictor(model, stats, stride, target, str(device), name=name)
     optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate(0, t))

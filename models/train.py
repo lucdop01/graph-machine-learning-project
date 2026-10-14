@@ -88,10 +88,14 @@ from graphs.dataset import (
     load_runs,
     load_stats,
 )
-from models.model_a import ModelA
-from models.model_b import ModelB
+from train_harness import build_model as harness_build_model, get_model_class
 
-MODELS = {"model_a": ModelA, "model_b": ModelB}
+MODELS = {
+    "model_a": get_model_class("model_a"),
+    "model_b": get_model_class("model_b"),
+    "gcn": get_model_class("gcn"),
+    "model_d": get_model_class("model_d"),
+}
 CKPT_DIR = "checkpoints"
 LOG_FIELDS = ("step", "lr", "train_loss", "grad_norm", "grad_norm_max", "ms_per_step", "data_ms_per_step",
               "val_score", "val_s", "time_s", "note")
@@ -139,10 +143,7 @@ def load_config(path):
 
 
 def build_model(model_cfg, stats=None):
-    kwargs = {k: v for k, v in model_cfg.items() if k != "name"}
-    if model_cfg["name"] == "model_b":
-        kwargs["stats"] = stats
-    return MODELS[model_cfg["name"]](**kwargs)
+    return harness_build_model(model_cfg, stats=stats)
 
 
 def load_checkpoint(path, device="cpu"):
