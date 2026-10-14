@@ -233,6 +233,9 @@ class TorchPredictor:
         self.builder = SampleBuilder(stats, self.stride, None if self.verify else self.device)
         self._mesh = {}                              # mesh tensors on the device, checked once per mesh
         self.mean, self.std = float(stats["target"][target]["mean"]), float(stats["target"][target]["std"])
+        set_stats_fn = getattr(self.model, "set_stats", None)
+        if callable(set_stats_fn):
+            set_stats_fn(self.mean, self.std)
         self.name = name or f"{type(model).__name__}_{target}"
 
     def reset(self, run):
