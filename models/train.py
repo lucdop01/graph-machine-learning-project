@@ -77,8 +77,9 @@ from graphs.dataset import MeltPoolGraphs, check_stats, check_stride, load_runs,
 from evaluation.rollout import load_size_bins, selection_score
 from evaluation.torch_predictor import TorchPredictor, check_on_device, move_checked, to_host, tree_to_host
 from models.model_a import ModelA
+from models.model_c import ModelC
 
-MODELS = {"model_a": ModelA}
+MODELS = {"model_a": ModelA, "model_c": ModelC}
 CKPT_DIR = "checkpoints"
 LOG_FIELDS = ("step", "lr", "train_loss", "grad_norm", "grad_norm_max", "ms_per_step", "data_ms_per_step",
               "val_score", "val_s", "time_s", "note")
