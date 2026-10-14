@@ -26,6 +26,7 @@ from train_harness import (
     load_config,
     rng_state,
     save_atomic,
+    set_all_seeds,
 )
 
 
@@ -72,6 +73,7 @@ def main():
     print("Running Mock Training Harness Verification")
     print("============================================================\n")
 
+    set_all_seeds(0)
     device = torch.device("cpu")
 
     # 1. Model instantiation & forward/backward verification (Model A, GCN, Model D)
