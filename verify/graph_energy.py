@@ -93,7 +93,9 @@ def check(run, mesh, interp="T", Tn=None, En=None):
 
 
 def line(r):
-    pct = lambda x: "    -" if np.isnan(x) else f"{100 * x:5.2f}"
+    def pct(x):
+        return "    -" if np.isnan(x) else f"{100 * x:5.2f}"
+
     band = "    -" if np.isnan(r["band"]) else f"{r['band'] * 1e6:5.1f}"
     return (f"{r['run']:28s} {r['split']:11s} {r['mesh']:20s} {r['nodes']:6d}  {pct(r['a'])}  {pct(r['a_early'])}  "
             f"{pct(r['b'])}  {100 * r['final']:+6.2f}  {pct(r['laser5'])}  {pct(r['laser2'])}  {band}  "
@@ -113,7 +115,9 @@ def summary(rows):
             groups[r[key]].append(r)
         print(f"\nworst per {key}: {'':12s} runs   (a)%   (b)%  las5%  las2%   band   pass")
         for name, g in groups.items():
-            worst = lambda f: np.nanmax([r[f] for r in g]) if not all(np.isnan(r[f]) for r in g) else np.nan
+            def worst(f):
+                return np.nanmax([r[f] for r in g]) if not all(np.isnan(r[f]) for r in g) else np.nan
+
             band = worst("band")
             print(f"  {name:28s} {len(g):4d}  {100 * worst('a'):5.2f}  {100 * worst('b'):5.2f}  "
                   f"{100 * worst('laser5'):5.2f}  {100 * worst('laser2'):5.2f}  "
