@@ -365,9 +365,13 @@ class SampleBuilder:
         st = self.mesh_tensors(run)
         if rotation is not None:
             st = {**st, **self.transformed(run, rotation)}
-        z = lambda x, key: (x - n[key]["mean"]) / n[key]["std"]
+        def z(x, key):
+            return (x - n[key]["mean"]) / n[key]["std"]
+
         x = np.c_[z(T0, "T"), z(phi, "phi"), z(E, "E"), run.mesh.boundary]
-        f32 = lambda a: torch.tensor(a, dtype=torch.float32, device=self.device)
+
+        def f32(a):
+            return torch.tensor(a, dtype=torch.float32, device=self.device)
         raw = dict(T=f32(T0), H=f32(run.H_from_T(T0)), E=f32(E), V=f32(run.V))
         if T_next is not None:
             raw.update(T_next=f32(T_next), H_next=f32(run.H_from_T(np.asarray(T_next, dtype=np.float64))))

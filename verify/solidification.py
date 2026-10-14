@@ -56,7 +56,10 @@ for name, wp, P, v, grid_study in cases:
     else:
         pts = points(0.4e-3, 1.6e-3, LY / 2 - 300e-6, LY / 2 + 300e-6)
     print(f"\n{name} {P} W {v} m/s, {len(pts)} points")
-    run = lambda **kw: simulate(P, v, wp, t_cool_max=5e-3, events=pts, **kw)
+
+    def run(**kw):
+        return simulate(P, v, wp, t_cool_max=5e-3, events=pts, **kw)
+
     r10 = run(save_every=10)
     ref = r10["events"]
     describe(ref, "reference (10 um, every step)")
