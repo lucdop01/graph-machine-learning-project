@@ -63,8 +63,16 @@ Usage (from the repo root, after python -m graphs.preprocess):
   python -m evaluation.rollout --split val --stride 5 --predictor oracle     per-run CSV and summary JSON
   python -m evaluation.rollout --split test_fine --predictor cross           10 vs 5 um gap, every metric
   python -m evaluation.rollout --benchmark --splits val test_path --runs 2 --predictor persistence
+  python -m evaluation.rollout --split test_path --checkpoint checkpoints/a_seed0/best.pt --device cuda
+  python -m evaluation.rollout --benchmark --checkpoint checkpoints/a_seed0/best.pt --device cuda
   options: --mesh-seed 1 (new-mesh test), --out results/eval
 Output: results/eval/<predictor>_<split>[_seed<k>]_s<stride>.csv (one row per run) and .json (split summary).
+
+A trained model (--checkpoint, models/train.py) is evaluated through evaluation/torch_predictor.py on --device (cpu or
+cuda), with the statistics, the stride and the size bins stored in its checkpoint, so it keeps what it was trained
+with. Its train fingerprint is compared with the current processed train split; a difference, or a missing train
+split, is printed as a warning. The predictor name is the run name (plus _last for last.pt). The benchmark runs one
+untimed step of a model before timing each run, so CUDA start-up and the upload of a new mesh are not counted.
 """
 import argparse
 import csv
@@ -484,6 +492,10 @@ def benchmark(splits, n_runs, predictor, stride, mesh_seed=0, root=OUT, index=IN
                 raise RuntimeError(f"{run_name(row)}: re-simulation gave {len(sim['t'])} frames, data/splits.json "
                                    f"says {row['frames']}")
             run = RunGraph(processed_file(run_name(row), mesh_seed, root))
+            if not truth_based:                          # one untimed step per run (CUDA start-up, mesh upload)
+                if hasattr(predictor, "reset"):
+                    predictor.reset(run)
+                predictor.step(run, run.T(0), 0, stride)
             ro = rollout(run, predictor, stride)
             speed = "n/a" if truth_based else f"{t_solver / ro['wall']:.1f}x"
             print(f"{run.name:24s} solver {t_solver:7.2f} s ({run.last} frames)   {predictor.name} rollout "
@@ -492,13 +504,44 @@ def benchmark(splits, n_runs, predictor, stride, mesh_seed=0, root=OUT, index=IN
     return out
 
 
+# ---------------------------------------------------------------- trained models
+
+def checkpoint_predictor(path, device="cpu", stride=None, root=OUT, index=INDEX):
+    """TorchPredictor for a checkpoint of models/train.py, with the statistics, stride and size bins stored in it.
+    Returns (predictor, stride, size bins). torch and models/ are imported here only, so CI never needs them."""
+    from models.train import load_checkpoint
+    from evaluation.torch_predictor import TorchPredictor
+
+    model, ckpt = load_checkpoint(path, device)
+    if stride is not None and check_stride(stride) != ckpt["stride"]:
+        raise SystemExit(f"{path} was trained for stride {ckpt['stride']}, not {stride}")
+    try:
+        current = current_train_fingerprint(root, index)
+        if current != ckpt["train_fingerprint"]:
+            print(f"WARNING: {path} was trained on other training data (fingerprint {ckpt['train_fingerprint']}) "
+                  f"than the current processed train split ({current}); it is evaluated with its own statistics "
+                  f"and size bins")
+    except FileNotFoundError as e:
+        print(f"WARNING: cannot compare {path} with the training data ({e}); it is evaluated with its own "
+              f"statistics and size bins")
+    stem = os.path.splitext(os.path.basename(path))[0]
+    name = ckpt["name"] + ("" if stem == "best" else f"_{stem}")
+    print(f"{path}: {ckpt['model_config']['name']} {ckpt['name']}, step {ckpt['step']}, validation score "
+          f"{ckpt['score']:.5g}, target {ckpt['target']}, stride {ckpt['stride']}, device {device}")
+    return TorchPredictor(model, ckpt["stats"], ckpt["stride"], ckpt["target"], device, name=name), ckpt["stride"], \
+        ckpt["size_bins"]
+
+
 # ---------------------------------------------------------------- command line
 
 def main():
     ap = argparse.ArgumentParser(description=__doc__.split("\n")[0])
     ap.add_argument("--split", default="val")
-    ap.add_argument("--stride", type=int, default=5)
-    ap.add_argument("--predictor", default="oracle", choices=("oracle", "persistence", "offset", "cross"))
+    ap.add_argument("--stride", type=int, help="saved frames per step (default 5, or the checkpoint's stride)")
+    ap.add_argument("--predictor", choices=("oracle", "persistence", "offset", "cross"),
+                    help="reference predictor (default oracle); leave out with --checkpoint")
+    ap.add_argument("--checkpoint", help="evaluate a trained model: checkpoints/<run>/best.pt (models/train.py)")
+    ap.add_argument("--device", default="cpu", help="device for --checkpoint: cpu or cuda")
     ap.add_argument("--mesh-seed", type=int, default=0)
     ap.add_argument("--out", default="results/eval")
     ap.add_argument("--size-bins", action="store_true", help="compute the size bins from the train split and exit")
@@ -512,21 +555,30 @@ def main():
         print(f"{size_bins_file()}: {b['runs_with_pool']} of {b['runs']} train runs have a melt pool; edges "
               + ", ".join(f"{e * 1e6:.4f} mm^2" for e in b["edges_m2"]))
         return
-    stride = check_stride(a.stride)
+    if a.checkpoint and a.predictor:
+        raise SystemExit("give either --checkpoint or --predictor")
     partners = None
     if a.predictor == "cross" or a.split == "test_fine":
         if a.split != "test_fine":
             raise SystemExit("--predictor cross is defined for --split test_fine only")
         partners = load_runs("test_interp", a.mesh_seed)
-    predictor = make_predictor(a.predictor, partners)
+    if a.checkpoint:
+        predictor, stride, bins = checkpoint_predictor(a.checkpoint, a.device, a.stride)
+    else:
+        stride = check_stride(5 if a.stride is None else a.stride)
+        predictor = make_predictor(a.predictor or "oracle", partners)
+        bins = None
     if a.benchmark:
         benchmark(a.splits, a.runs, predictor, stride, a.mesh_seed)
         return
     runs = load_runs(a.split, a.mesh_seed)
-    bins = load_size_bins()
+    if bins is None:
+        bins = load_size_bins()
     rows, summary = evaluate_split(runs, predictor, stride, bins, partners)
     summary["mesh_seed"] = a.mesh_seed
-    stem = f"{a.predictor}_{a.split}" + (f"_seed{a.mesh_seed}" if a.mesh_seed else "") + f"_s{stride}"
+    if a.checkpoint:
+        summary["checkpoint"] = a.checkpoint
+    stem = f"{predictor.name}_{a.split}" + (f"_seed{a.mesh_seed}" if a.mesh_seed else "") + f"_s{stride}"
     write_results(rows, summary, a.out, stem)
     for r in rows:
         print(f"  {r['run']:24s} nRMSE {fmt(r['nrmse'], digits=4):>9s}  melt MAE {fmt(r.get('melt_mae')):>7s} K  "

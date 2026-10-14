@@ -7,6 +7,10 @@ Each predictor runs at strides 5 and 2 (66.7 and 26.7 us; week1 frames are twice
                 the truth. Asserted to 1e-6.
   offset +10 K  the true frames plus 10 K: melting-range MAE exactly 10 K; nRMSE and the energy errors equal closed
                 forms computed here, nRMSE = 10 sqrt(N) / ||T - 300 K|| and dE = sum rho d A [H(T + 10) - H(T)].
+  offset -10 K  the same with -10 K. Cold nodes are then predicted below 300 K, outside the solver's material table.
+                The closed form writes the enthalpy out here (the solver's table, and cp(300 K) (T - 300 K) below
+                300 K) instead of using the run's material table, and must differ clearly from what the clamped table
+                gives. So this is the regression check for the table extension (graphs/preprocess.py material()).
   persistence   T_next = T: nRMSE equal to ||T_0 - T|| / ||T - 300 K||, which is 1 because frame 0 is exactly 300 K
                 (also checked); IoU 0 and every melted node missed, so clearly non-zero errors.
   torch path    (needs torch and torch_geometric, skipped without them, so not in CI) the oracle through
@@ -19,7 +23,12 @@ Each predictor runs at strides 5 and 2 (66.7 and 26.7 us; week1 frames are twice
                 a rounding error of 3e-5 K already moves the soft IoU by about 1e-3. The statistics are the saved
                 data/graphs/norm_stride<s>.json, loaded with all its checks (graphs.dataset.load_stats), so a stale
                 file fails. Only in CI mode, and only when that file is absent, are statistics computed from the
-                check's own runs instead (printed as such).
+                check's own runs instead (printed as such). The dummy module adds 10 K in training mode, and the
+                check switches it to training mode after building the predictor and before every rollout, so a
+                predictor that does not switch the model to evaluation mode itself fails with 10 K errors.
+  material      the table extension: bit for bit the solver's table between 300 and 6,000 K (H and T), the straight
+                lines outside it with cp(300 K) and cp(T_L) from solver/ti64.py, and H and T inverses of each other
+                outside the table.
 Printed, not gated: the cadence diagnostic of solidification per run (the truth at the output times against the truth
 at every saved frame), the oracle's energy budget (the preprocessing mismatch) and, for test_fine, the 10 vs 5 um gap.
 
@@ -36,10 +45,11 @@ import time
 import numpy as np
 
 from solver.solver import simulate
+from solver import ti64
 from solver.ti64 import CONST_PROPS, RHO, T0
 from data.generate import COOL
 from graphs.mesh import PATHS
-from graphs.preprocess import mesh_for_run
+from graphs.preprocess import material, mesh_for_run
 from graphs.dataset import RunGraph, TORCH_MISSING, compute_stats, load_runs, load_stats, stats_file
 from evaluation.rollout import (SPLITS, Offset, Oracle, Persistence, compute_size_bins, evaluate_run, evaluate_split,
                                 fmt, load_size_bins, rollout)
@@ -109,22 +119,61 @@ def check_oracle(rows, summary, tol, label="oracle"):
                 expect(v["runs_with_predicted_pool"] == 0, f"{label}: predicted pool in bin none")
 
 
+def H_closed(run, T):
+    """Enthalpy (J/kg) for the closed forms, written out here instead of taken from the run's material table: the
+    solver's table (solver/ti64.py) from 300 K up, cp(300 K) (T - 300 K) below; week1 c_p (T - 300 K)."""
+    T = np.asarray(T, float)
+    if not run.melts:
+        return ti64.CP_CONST * (T - T0)
+    if T.max() > 6000.0:
+        raise ValueError("the closed form covers temperatures up to 6,000 K")
+    return np.where(T < T0, float(ti64.cp(T0)) * (T - T0), ti64.H_from_T(T))
+
+
 def check_offset(rows, runs, dT=10.0):
     by_name = {r.name: r for r in runs}
     for r in rows:
-        run, name = by_name[r["run"]], f"offset {r['run']} stride {r['stride']}"
+        run, name = by_name[r["run"]], f"offset {dT:+g} K {r['run']} stride {r['stride']}"
         f = r["stride"] * np.arange(1, r["frames_scored"] + 1)
         T = run.T_frames(f)
-        cf = dT * np.sqrt(T.size) / np.sqrt(((T - T0) ** 2).sum())
+        cf = abs(dT) * np.sqrt(T.size) / np.sqrt(((T - T0) ** 2).sum())
         expect(close(r["nrmse"], cf, 1e-9 * cf), f"{name}: nRMSE {r['nrmse']} vs closed form {cf}")
-        dE = RHO * float(run.attrs["d"]) * ((run.H_from_T(T + dT) - run.H_from_T(T)) * run.mesh.area).sum(axis=1)
+        dE = RHO * float(run.attrs["d"]) * ((H_closed(run, T + dT) - H_closed(run, T)) * run.mesh.area).sum(axis=1)
         cum, total = run.laser_input()[f], run.laser_input()[-1]
         late = cum >= 0.05 * total
         cfe = dict(a=np.max(np.abs(dE[late]) / cum[late]), b=np.max(np.abs(dE)) / total, end=dE[-1] / total)
         for k, v in cfe.items():
             expect(close(r[f"energy_{k}"], v, 1e-9 * abs(v)), f"{name}: energy ({k}) {r[f'energy_{k}']} vs {v}")
         if "melt_mae" in r and r["melt_points"] > 0:
-            expect(close(r["melt_mae"], dT, TOL), f"{name}: melting-range MAE {r['melt_mae']}")
+            expect(close(r["melt_mae"], abs(dT), TOL), f"{name}: melting-range MAE {r['melt_mae']}")
+        if dT < 0 and run.melts:          # the case below 300 K must be exercised and must matter
+            below = int((T + dT < T0).sum())
+            clamped = RHO * float(run.attrs["d"]) * ((ti64.H_from_T(T + dT) - ti64.H_from_T(T))
+                                                     * run.mesh.area).sum(axis=1)
+            diff = np.max(np.abs(dE - clamped)) / total
+            expect(below > 0 and diff > 1e-3, f"{name}: {below} (node, frame) pairs below 300 K, closed form differs "
+                                               f"from the clamped table by {diff:.2e} of the input")
+
+
+def check_material():
+    """The table extension of graphs/preprocess.py material(), against solver/ti64.py written out here."""
+    HfT, TfH = material("val")
+    T = np.r_[np.linspace(T0, 6000.0, 400001), ti64.T_S, ti64.T_L]
+    T32 = np.linspace(T0, 3700.0, 9973).astype(np.float32)                 # stored node temperatures are float32
+    H = np.linspace(0.0, float(ti64.H_from_T(6000.0)), 400001)
+    expect(np.array_equal(HfT(T), ti64.H_from_T(T)) and np.array_equal(HfT(T32), ti64.H_from_T(T32)),
+           "material: H(T) differs from the solver's table inside it")
+    expect(np.array_equal(TfH(H), ti64.T_from_H(H)), "material: T(H) differs from the solver's table inside it")
+    lo, hi = np.linspace(-1000.0, 299.999, 2001), np.linspace(6000.001, 20000.0, 2001)
+    H_lo = float(ti64.cp(T0)) * (lo - T0)
+    H_hi = float(ti64.H_from_T(6000.0)) + float(ti64.cp(ti64.T_L)) * (hi - 6000.0)
+    err_H = max(np.abs(HfT(lo) - H_lo).max(), np.abs(HfT(hi) - H_hi).max() / H_hi.max())
+    err_T = max(np.abs(TfH(HfT(x)) - x).max() for x in (lo, hi))
+    err_T2 = max(np.abs(TfH(h) - x).max() for h, x in ((H_lo, lo), (H_hi, hi)))
+    print(f"material table: bit for bit inside 300-6,000 K; outside, |H - closed form| {err_H:.1e} "
+          f"(J/kg below, relative above), |T(H(T)) - T| {err_T:.1e} K, |T(H) - T| {err_T2:.1e} K "
+          f"(cp {float(ti64.cp(T0)):.2f} and {float(ti64.cp(ti64.T_L)):.2f} J/kg K)")
+    expect(err_H < 1e-9 and err_T < 1e-9 and err_T2 < 1e-9, f"material: extension off by {err_H}, {err_T}, {err_T2}")
 
 
 def check_persistence(rows, runs):
@@ -172,9 +221,10 @@ def check_runs(runs, bins, partners=None, title=""):
         b = s["budget"]
         print(f"  {'':12s} oracle energy budget (mesh energy minus mesh laser input, the preprocessing mismatch): "
               f"(a) max {fmt(b['a']['max'], True)}, (b) max {fmt(b['b']['max'], True)}")
-        rows, s = evaluate_split(runs, Offset(10.0), stride, bins, partners)
-        line("offset +10 K", s)
-        check_offset(rows, runs)
+        for dT in (10.0, -10.0):
+            rows, s = evaluate_split(runs, Offset(dT), stride, bins, partners)
+            line(f"offset {dT:+.0f} K", s)
+            check_offset(rows, runs, dT)
         rows, s = evaluate_split(runs, Persistence(), stride, bins, partners)
         line("persistence", s)
         check_persistence(rows, runs)
@@ -222,7 +272,7 @@ def torch_path(runs, ci_mode):
         def forward(self, g):
             run, k, n = self.runs[g.run], int(g.k), self.stats["node"]["T"]
             T_in = g.x[:, 0].double().cpu().numpy() * n["std"] + n["mean"]
-            T_next = run.T(k + self.stride)
+            T_next = run.T(k + self.stride) + (10.0 if self.training else 0.0)   # wrong in training mode
             d = T_next - T_in if self.target == "dT" else run.H_from_T(T_next) - run.H_from_T(T_in)
             m = self.stats["target"][self.target]
             return torch.tensor((d - m["mean"]) / m["std"], dtype=torch.float32)
@@ -237,11 +287,14 @@ def torch_path(runs, ci_mode):
         print(f"  stride {stride}: statistics {source}")
         for target in ("dT", "dH"):
             pred = TorchPredictor(TruthModule(stats, stride, target), stats, stride, target, name=f"oracle_{target}")
-            dT_max = 0.0
+            dT_max, rows = 0.0, []
             for run in melting:
+                pred.model.train()                         # as training code leaves it between validations
                 ro = rollout(run, pred, stride)
                 dT_max = max(dT_max, float(np.abs(ro["T"] - run.T_frames(ro["frames"])).max()))
-            rows = [evaluate_run(run, pred, stride)[0] for run in melting]
+                expect(not pred.model.training, f"torch {target} stride {stride}: model still in training mode")
+                pred.model.train()
+                rows.append(evaluate_run(run, pred, stride)[0])
             worst = lambda key: np.nanmax([abs(r[key] - (1.0 if "iou" in key else 0.0)) for r in rows])
             print(f"    target {target}: worst |T error| {dT_max:.2e} K, nRMSE {worst('nrmse'):.2e}, melt MAE "
                   f"{worst('melt_mae'):.2e} K, energy (a) {worst('energy_a'):.2e}, (b) {worst('energy_b'):.2e}; "
@@ -282,6 +335,7 @@ def main():
     ap.add_argument("--mesh-seed", type=int, default=0)
     a = ap.parse_args()
     t_start = time.time()
+    check_material()
     if not a.dataset:
         print(f"check 8, CI mode: {len(CASES)} simulated runs, strides {STRIDES}")
         runs = ci_runs()

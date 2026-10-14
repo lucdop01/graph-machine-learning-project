@@ -40,12 +40,40 @@ from graphs.mesh import PARAMS, get_mesh, mesh_name
 
 OUT = "data/graphs"
 
+# Ti-6Al-4V table of solver/ti64.py (300 to 6,000 K) and its linear continuation outside that range
+T_LOW, T_TOP = float(ti64._T[0]), float(ti64._T[-1])
+H_TOP = float(ti64._H[-1])
+CP_LOW = float(ti64.cp(T_LOW))         # 547.54 J/kg K, cp at 300 K
+CP_HIGH = float(ti64.cp(ti64.T_L))     # 759.74 J/kg K, cp is constant above the liquidus, so this is the last slope
+
+
+def ti64_H_from_T(T):
+    """Enthalpy (J/kg, 0 at 300 K): the solver's table between 300 and 6,000 K (bit for bit) and a straight line
+    outside it, H = cp(300 K) (T - 300 K) below and H(6,000 K) + cp(T_L) (T - 6,000 K) above."""
+    T = np.asarray(T, dtype=np.float64)
+    H = np.where(T < T_LOW, CP_LOW * (T - T_LOW), ti64.H_from_T(T))
+    return np.where(T > T_TOP, H_TOP + CP_HIGH * (T - T_TOP), H)[()]
+
+
+def ti64_T_from_H(H):
+    """Inverse of ti64_H_from_T: the solver's table for 0 <= H <= H(6,000 K), the same straight lines outside."""
+    H = np.asarray(H, dtype=np.float64)
+    T = np.where(H < 0.0, T_LOW + H / CP_LOW, ti64.T_from_H(H))
+    return np.where(H > H_TOP, T_TOP + (H - H_TOP) / CP_HIGH, T)[()]
+
 
 def material(split):
-    """Enthalpy table of a run: week1 uses constant properties without melting, every other split Ti-6Al-4V."""
+    """Enthalpy table of a run: week1 uses constant properties without melting, every other split Ti-6Al-4V.
+
+    The Ti-6Al-4V table of solver/ti64.py covers 300 to 6,000 K and clamps outside (H = 0 below 300 K, T = 300 K for
+    H < 0). The solver never leaves that range, but a model can: a dT model can predict below 300 K, and a dH model
+    can give H + dH < 0. Clamped, the first would add no energy error and the second would be set to 300 K, which
+    adds energy. So every conversion after the solver (node data, RunGraph, SampleBuilder, the evaluation energy and
+    TorchPredictor) continues the table as a straight line. Inside the range the result is bit for bit the solver's,
+    so the stored data, the statistics and the training samples do not change. The solver keeps its own table."""
     if split == "week1":
         return ti64.CONST_PROPS["H_from_T"], ti64.CONST_PROPS["T_from_H"]
-    return ti64.H_from_T, ti64.T_from_H
+    return ti64_H_from_T, ti64_T_from_H
 
 
 def load_run(fn):
