@@ -45,12 +45,14 @@ def main():
     print("Running Mock Training Harness Verification")
     print("============================================================\n")
 
-    # 1. Model instantiation
+    # 1. Model instantiation (Model A and GCN baseline)
+    for model_name in ("model_a", "gcn"):
+        m_cfg = {"name": model_name, "width": 16, "layers": 2, "hidden_layers": 1}
+        test_model = build_model(m_cfg)
+        n_params = sum(p.numel() for p in test_model.parameters())
+        print(f"1. Model '{model_name}' instantiated successfully ({n_params:,} parameters)")
     model_cfg = {"name": "model_a", "width": 16, "layers": 2, "hidden_layers": 1}
-    print(f"1. Instantiating model ({model_cfg['name']})...")
     model = build_model(model_cfg)
-    n_params = sum(p.numel() for p in model.parameters())
-    print(f"   ModelA instantiated successfully ({n_params:,} parameters)")
 
     # 2. Forward pass, loss calculation, backward pass, optimizer step
     device = torch.device("cpu")
