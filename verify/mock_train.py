@@ -15,7 +15,7 @@ import torch
 from torch_geometric.data import Data
 
 from graphs.dataset import EDGE_FEATURES, NODE_FEATURES
-from models.train_harness import (
+from train_harness import (
     Interval,
     assert_weights_finite,
     build_checkpoint,

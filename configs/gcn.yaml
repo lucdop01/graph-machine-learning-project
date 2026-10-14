@@ -1,4 +1,4 @@
-# GCN baseline (plan step 4). python -m models.train_harness --config configs/gcn.yaml --name <run>
+# GCN baseline (plan step 4). python train_harness.py --config configs/gcn.yaml --name <run>
 # Evaluates graph convolution ignoring edge features (no metric geometry / directions).
 model:
   name: gcn
