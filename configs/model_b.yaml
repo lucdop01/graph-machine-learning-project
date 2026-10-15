@@ -19,6 +19,6 @@ training:
   val_every: 2000
   log_every: 100
   num_workers: 0
-  device: cuda
+  device: cpu
   augment: true
-  precision: bf16
+  precision: fp32

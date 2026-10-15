@@ -19,6 +19,6 @@ training:
   val_every: 2000         # validation rollouts (selection score over the 20 val runs) and checkpoints
   log_every: 100
   num_workers: 0          # DataLoader workers; 0 on Windows, and needed for an exact --resume
-  device: cpu             # training device: cpu (or cuda if GPU available)
+  device: cpu             # default compute device: cpu (use --device cuda on GPU)
   augment: true           # rotational and reflection data augmentation
-  precision: fp32         # fp32 on CPU; bf16 matrix products if training on GPU
+  precision: fp32         # fp32 on CPU (use --precision bf16 on CUDA GPU)

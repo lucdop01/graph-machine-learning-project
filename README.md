@@ -11,10 +11,10 @@ moving over a thin Ti-6Al-4V plate, with melting.
 
 - **Model A** (`models/model_a.py`, `configs/model_a.yaml`): MeshGraphNet baseline with augmentations; three seeds without augmentation evaluated (`results/eval/a_seed*`).
 - **Model B** (`models/model_b.py`, `configs/model_b.yaml`): Physics-guided linear heat diffusion residual integrated into the shared training runner and unified harness (`train_harness.py`). Component and training checks pass (`verify.model_b`, `verify.model_b_training`).
-- **Model C** (by Jack, branch `jack/model-c`): Enthalpy target $dH$ with exact material table inversion ($T(H)$); harness is ready to integrate it once merged.
+- **Model C** (`models/model_c.py`, `configs/model_c.yaml`): Direct enthalpy formulation (by Jack, merged into `main`). Predicts specific enthalpy change $\Delta H$ with continuous material table inversion ($T(H)$).
 - **Model D** (`models/model_d.py`, `configs/model_d.yaml`): Strict heat conservation via antisymmetric edge heat fluxes ($F_{ij} = -F_{ji}$) guaranteeing zero net internal energy accumulation bit for bit.
 - **GCN / RGCN** (`models/gcn.py`, `configs/gcn.yaml`): Standard and residual Graph Convolutional Network baselines supporting customizable stride and dataset normalization statistics.
-- **Unified Training Harness** (`train_harness.py`, `verify/mock_train.py`): Dynamic model registry and parameter injection, exact reproducible seeding across PyTorch/NumPy/Python, atomic checkpoint saving/reloading, interval streaming, and parameter verification across all architectures and production configurations.
+- **Unified Training Harness** (`train_harness.py`, `verify/mock_train.py`): Dynamic model registry and parameter injection, exact reproducible seeding across PyTorch/NumPy/Python, atomic checkpoint saving/reloading, interval streaming, and parameter verification across all architectures and production configurations. See [docs/training_guide.md](docs/training_guide.md) for the complete unified training guide.
 
 | Part | State |
 |---|---|
@@ -24,7 +24,7 @@ moving over a thin Ti-6Al-4V plate, with melting.
 | Rollout and evaluation harness (`evaluation/`) | Done: rollouts, metrics, selection score, reference predictors; the solver's own frames score zero (check 8) |
 | Model A (`models/model_a.py`) | Done: baseline evaluated across 3 seeds without augmentation; augmentations supported |
 | Model B (`models/model_b.py`) | Done: physics-informed linear diffusion residual integrated into harness and verified |
-| Model C (enthalpy formulation) | In progress on `jack/model-c` (Jack) |
+| Model C (`models/model_c.py`) | Done: enthalpy formulation with continuous material inversion, integrated into harness |
 | Model D (`models/model_d.py`) | Done: strictly conservative flux GNN with bit-exact zero internal energy error |
 | GCN / RGCN (`models/gcn.py`) | Done: baseline graph convolution architectures with normalization stats and stride support |
 | Unified Harness (`train_harness.py`) | Done: multi-model registry, exact reproducibility, mock verified (`verify.mock_train`) |
@@ -63,7 +63,7 @@ python -m graphs.figures                     # mesh and interpolation figures in
 python -m verify.harness                     # check 8: the harness scores the solver's own frames, under a minute
 python -m evaluation.rollout --size-bins     # melt-pool size bins from the train split (once)
 python -m evaluation.rollout --split val --stride 5 --predictor oracle   # rollout metrics in results/eval/
-python -m models.train --config configs/model_a.yaml --steps 2000 --name smoke   # training smoke run (GPU)
+python -m models.train --config configs/model_a.yaml --steps 2000 --name smoke   # training smoke run (CPU default; use --device cuda on GPU)
 ```
 
 Generated runs go to `data/runs/` (git-ignored) and the index to `data/splits.json` (commit this one).
@@ -300,17 +300,19 @@ matrix work in the edge MLPs, which take most of a training step.
 
 **Model B** (`models/model_b.py`, `configs/model_b.yaml`): MeshGraphNet with a physics-informed linear heat diffusion residual. Combines explicit linear diffusion through discrete Laplace-Beltrami / cotangent edge weights with a neural residual correction that learns the nonlinear convection/phase-change deviations ($\Delta T - \Delta T_{\text{diff}}$).
 
-**Model C** (by Jack, branch `jack/model-c`): Direct enthalpy formulation. Predicts specific enthalpy change $\Delta H$ rather than $\Delta T$. During rollout, updated enthalpy is mapped back to temperature through the continuous material inversion curve $T(H)$, eliminating numerical gradient stalls and temperature discontinuities during latent heat absorption in the melting range.
+**Model C** (`models/model_c.py`, `configs/model_c.yaml`): Direct enthalpy formulation (by Jack, merged into `main`). Predicts specific enthalpy change $\Delta H$ rather than $\Delta T$. During rollout, updated enthalpy is mapped back to temperature through the continuous material inversion curve $T(H)$, eliminating numerical gradient stalls and temperature discontinuities during latent heat absorption in the melting range.
 
 **Model D** (`models/model_d.py`, `configs/model_d.yaml`): Strictly conservative edge-flux GNN. Encodes nodes and edges, using an edge decoder to predict antisymmetric heat fluxes $F_{ij} = -F_{ji}$ between adjacent nodes. Node enthalpy updates sum the incoming edge fluxes and add external laser energy directly ($\Delta E_i = E_{\text{laser}, i} + \sum_{j \in \mathcal{N}(i)} F_{ji}$). Because edge fluxes cancel pair-by-pair across every interior edge, net internal conduction energy is mathematically guaranteed to sum to zero ($0.0$ bit for bit).
 
 **GCN & RGCN** (`models/gcn.py`, `configs/gcn.yaml`): Non-physics baseline graph neural networks utilizing isotropic neighborhood aggregation (with optional residual connections in RGCN). Supports initialization normalization statistics and configurable stride parameters.
 
-**Unified Training Harness** (`train_harness.py`, `verify/mock_train.py`): A modular, fully-typed training harness supporting all models (`model_a`, `model_b`, `model_c` (when merged), `model_d`, `gcn`, `rgcn`). Features include:
+**Unified Training Harness** (`train_harness.py`, `verify/mock_train.py`): A modular, fully-typed training harness supporting all models (`model_a`, `model_b`, `model_c`, `model_d`, `gcn`, `rgcn`). Features include:
 - Dynamic model instantiation and constructor introspection for specialized dependencies (`stats`, `stride`).
 - Exact reproducible multi-library seeding (`torch`, `numpy`, `random`) for consistent comparison.
+- Multi-seed evaluation (`--multi-seed`) and fixed-budget hyperparameter sweeps (`--sweep`).
 - Atomic checkpoint creation and safe resume capability.
 - Comprehensive mock verification test suite (`verify/mock_train.py`) verifying parameter counts, forward-backward pass stability, gradient norms, flux antisymmetry, and checkpoint reloading across all architectures and production YAML configs.
+- Complete documentation and terminology conventions in [docs/training_guide.md](docs/training_guide.md).
 
 **Training** (`models/train.py`, settings in `configs/model_a.yaml`):
 
@@ -493,10 +495,11 @@ verify/          energy_balance.py, rosenthal.py, stefan.py, convergence.py, coo
 data/            generate.py, splits.json, meshes/ (commit), runs/ and graphs/ (git-ignored)
 graphs/          mesh.py, preprocess.py, dataset.py, figures.py
 evaluation/      metrics.py, rollout.py (rollouts, evaluation, reference predictors, command line), torch_predictor.py
-models/          backbone.py, model_a.py, model_b.py, model_d.py, gcn.py, train.py
+models/          backbone.py, model_a.py, model_b.py, model_c.py, model_d.py, gcn.py, train.py
 train_harness.py unified training engine with dynamic model registry, reproducible seeding, and atomic checkpointing
-analysis/        planned: plateau, probes, attribution, spectra
-configs/         model_a.yaml, model_b.yaml, model_d.yaml, gcn.yaml
+docs/            training_guide.md (unified guide & conventions), team reports and documentation
+analysis/        plateau.py, run_model_b_gate.py, spectra.py, mesh_transfer.py
+configs/         model_a.yaml, model_b.yaml, model_c.yaml, model_d.yaml, gcn.yaml
 notebooks/       project.ipynb (course requirement)
 results/         eval/ (rollout metrics), figures/ (git-ignored)
 checkpoints/     one folder per training run (git-ignored)
