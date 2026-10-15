@@ -1,5 +1,9 @@
 # Lei: Model B and mesh transfer
 
+Report-ready method text and the checkpoint-free spectral figure are in
+docs/lei_report_draft.md. Settings to confirm with teammates are in
+docs/lei_team_alignment.md; no team message has been sent.
+
 Aligned with **Melt-Pool GNN Plan (4)**, received 13 October 2026.
 
 As of 15 October: Model B is registered in the shared trainer and checkpoint
@@ -166,6 +170,7 @@ After full training, interpretation and transfer use actual checkpoint paths:
 ```bash
 python -m analysis.model_b_corrections --checkpoint checkpoints/b_gate_20k_aug_b_seed0/best.pt --device cuda
 python -m analysis.spectra --mesh straight --seeds 0 1 --out results/lei/spectral_response.json
+python -m analysis.plot_model_b_spectra
 python -m data.generate --only test_fine
 python -m graphs.preprocess --splits test_fine
 python -m analysis.mesh_transfer --checkpoints checkpoints/b_gate_20k_aug_a_seed0/best.pt checkpoints/b_gate_20k_aug_b_seed0/best.pt --device cuda
