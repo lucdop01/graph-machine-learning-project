@@ -50,10 +50,18 @@ class LinearDiffusion(nn.Module):
 
 
 class ModelB(nn.Module):
-    def __init__(self, correction, stats, **diffusion_kwargs):
+    target = "dT"
+
+    def __init__(self, correction=None, stats=None, width=128, layers=15, hidden_layers=2,
+                 conductivity=K_CONST, heat_capacity=CP_CONST, max_substeps=10000):
         super().__init__()
+        if stats is None:
+            raise ValueError("ModelB needs the training statistics (or checkpoint stats)")
+        if correction is None:
+            from models.model_a import ModelA
+            correction = ModelA(width=width, layers=layers, hidden_layers=hidden_layers)
         self.correction = correction
-        self.diffusion = LinearDiffusion(**diffusion_kwargs)
+        self.diffusion = LinearDiffusion(conductivity, heat_capacity, max_substeps)
         target = stats["target"]["dT"]
         if not math.isfinite(target["std"]) or target["std"] <= 0:
             raise ValueError("dT target std must be finite and positive")

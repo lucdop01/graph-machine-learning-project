@@ -11,8 +11,8 @@ moving over a thin Ti-6Al-4V plate, with melting.
 
 Lei's Model B prototype, fixed diffusion baseline, gate rule and mesh-transfer
 workflow are documented in [docs/lei_model_b.md](docs/lei_model_b.md).
-They are verified locally; trained A/B comparison results are pending Model B
-integration into the shared training runner. Run `python -m verify.model_b` for component checks.
+Model B is integrated into the shared training runner; local training and
+resume checks pass. Formal three-seed A/B comparison results are pending. Run `python -m verify.model_b` for component checks.
 
 | Part | State |
 |---|---|
@@ -21,7 +21,7 @@ integration into the shared training runner. Run `python -m verify.model_b` for 
 | Graph preprocessing (`graphs/`) | Done: meshes, node data, PyTorch Geometric dataset; energy check passes (check 7) |
 | Rollout and evaluation harness (`evaluation/`) | Done: rollouts, metrics, selection score, reference predictors; the solver's own frames score zero (check 8) |
 | Model A and the training pipeline (`models/`, `configs/`) | Three seeds without augmentation done and evaluated (`results/eval/a_seed*`); three seeds with augmentation to do |
-| Model B, fixed diffusion, gate and mesh spectra | Prototype verified; integration into the shared training runner and gate experiments pending |
+| Model B, fixed diffusion, gate and mesh spectra | Shared training/checkpoint integration verified; formal three-seed gate pending |
 | GCN, models C-D, U-Net grid, partitions, remaining analysis | To do (`graphs/`, `models/`, `analysis/` list the planned modules) |
 
 ## Setup

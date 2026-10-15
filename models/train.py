@@ -77,8 +77,9 @@ from graphs.dataset import MeltPoolGraphs, check_stats, check_stride, load_runs,
 from evaluation.rollout import load_size_bins, selection_score
 from evaluation.torch_predictor import TorchPredictor, check_on_device, move_checked, to_host, tree_to_host
 from models.model_a import ModelA
+from models.model_b import ModelB
 
-MODELS = {"model_a": ModelA}
+MODELS = {"model_a": ModelA, "model_b": ModelB}
 CKPT_DIR = "checkpoints"
 LOG_FIELDS = ("step", "lr", "train_loss", "grad_norm", "grad_norm_max", "ms_per_step", "data_ms_per_step",
               "val_score", "val_s", "time_s", "note")
@@ -125,15 +126,18 @@ def load_config(path):
         return check_config(yaml.safe_load(f))
 
 
-def build_model(model_cfg):
-    return MODELS[model_cfg["name"]](**{k: v for k, v in model_cfg.items() if k != "name"})
+def build_model(model_cfg, stats=None):
+    kwargs = {k: v for k, v in model_cfg.items() if k != "name"}
+    if model_cfg["name"] == "model_b":
+        kwargs["stats"] = stats
+    return MODELS[model_cfg["name"]](**kwargs)
 
 
 def load_checkpoint(path, device="cpu"):
     """The model of a checkpoint in evaluation mode on device, and the checkpoint dict (statistics, stride, target,
     size bins, step, scores)."""
     ckpt = torch.load(path, map_location="cpu", weights_only=True)
-    model = build_model(ckpt["model_config"])
+    model = build_model(ckpt["model_config"], ckpt["stats"])
     model.load_state_dict(ckpt["model"])
     return move_checked(model, device, f"weights of {path}").eval(), ckpt       # on a GPU: checked on arrival
 
@@ -319,7 +323,7 @@ def train(cfg, name, ckpt=None):
         random.seed(t["seed"])
         np.random.seed(t["seed"])
         torch.manual_seed(t["seed"])
-    model = build_model(cfg["model"])
+    model = build_model(cfg["model"], stats)
     target = model.target
     if target not in stats["target"]:
         raise ValueError(f"no statistics for target {target}")
