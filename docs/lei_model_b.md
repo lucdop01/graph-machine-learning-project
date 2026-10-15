@@ -2,22 +2,22 @@
 
 Aligned with **Melt-Pool GNN Plan (4)**, received 13 October 2026.
 
-15 October integration note: main now includes Model A and the shared training
-runner. This merge preserves the verified prototype; registering Model B and
-adapting its YAML to that runner are still pending. References below to missing
-Model A/training describe the original 13 October implementation snapshot.
+As of 15 October: Model B is registered in the shared trainer and checkpoint
+loader. The YAML is executable and matches A's training settings. Local physics,
+training, checkpoint and resume checks pass. The formal three-seed gate is
+**pending**: this host has no CUDA/MPS device and no generated full dataset.
+The user selected local verification plus runnable GPU experiment scripts.
 
 ## Deliverables and current status
 
-- Implemented a mass-lumped cotangent diffusion operator, fixed linear filter,
-  and Model B wrapper accepting the team's Model A as its correction network.
-- Extended SampleBuilder with physical node area, cotangent weights and step dt;
-  training and TorchPredictor rollouts use exactly the same input path.
-- Added a preregistered three-seed gate and a mesh spectra command for the no-go branch.
-- The shared Model A, training runner and trained checkpoints do not exist in
-  the fetched repository. Therefore the prototype is verified, but the actual
-  gate, full-data sweep and learned-model transfer results are **pending**.
-  No synthetic check is a trained-model experimental result.
+- Fixed linear diffusion and source branch plus the exact shared Model A backbone.
+- Same parameter count, training noise, rotation/reflection augmentation, schedule
+  and validation selection criterion as A; train-only normalisation.
+- One shared training loop, registered model construction and checkpoint loading.
+- Three-seed gate runner, mesh-transfer runner, teacher-forced correction maps,
+  and spectral response comparison with the exact homogeneous heat kernel.
+- Gate numbers, trained-model interpretation and final report conclusions await
+  real checkpoints. Local fixtures are not gate evidence.
 
 ## Integration
 
@@ -25,8 +25,8 @@ Model A/training describe the original 13 October implementation snapshot.
 from models.model_b import ModelB
 from evaluation.torch_predictor import TorchPredictor
 
-# model_a is supplied by Luc; stats are train-only dataset.stats.
-model = ModelB(correction=model_a, stats=stats)
+# stats are train-only dataset.stats; default correction is the shared ModelA.
+model = ModelB(stats=stats)
 predictor = TorchPredictor(model, stats, stride=5, target="dT", name="B")
 ```
 
@@ -76,7 +76,8 @@ numbers and the failed gate conditions; do not tune the rule after seeing result
 
 Compare each trained model on the same test_interp runs, graph seeds 0 and 1,
 without fine-tuning or refitting normalisation. Compare test_fine errors with
-the existing cross predictor's paired 10 µm vs 5 µm solver gap. In this repository
+the existing cross predictor's paired 10 µm vs 5 µm solver gap. This gap
+is resolution context, not an error floor for the model. In this repository
 test_fine refines the solver grid, not the GNN mesh. Describe the study as
 new-mesh transfer and solver-resolution sensitivity. Solidification on test_fine
 is diagnostic only; the plan permits quantitative mid-pool solidification at stride 2.
@@ -91,8 +92,7 @@ python -m verify.model_b
 ```
 
 Rollout CLI requires generated/preprocessed data and train-only size bins as
-described in README. Config YAML is an integration specification until the
-shared runner implements a config reader.
+described in README. configs/model_b.yaml now runs through models.train.
 
 ## Report method draft
 
@@ -126,3 +126,63 @@ smoke diagnostics, not three-seed Model B performance results.
 and the largest eigenvalue for straight graph seeds 0 and 1. Both have the
 expected approximately zero constant mode. This is mesh spectrum groundwork;
 learned-model spectral behaviour still needs checkpoints.
+
+## Reproducible commands
+
+Activate the repo virtual environment locally, or install requirements on the
+GPU host. Run everything from the repository root. The formal gate runs A and B
+from scratch with augmentation on, so it does not reuse the old unaugmented A
+results. Default budget is 20,000 steps per seed, seeds 0/1/2, stride 5.
+
+```bash
+python -m verify.model_b
+python -m verify.model_b_training
+python -m analysis.run_model_b_gate --prepare-data
+python -m analysis.run_model_b_gate --check
+python -m analysis.run_model_b_gate --train
+# Continue interrupted jobs using the same settings:
+python -m analysis.run_model_b_gate --train --resume
+# Re-score completed jobs without retraining:
+python -m analysis.run_model_b_gate
+```
+
+Data preparation regenerates the full train (150), val (20), test_interp (30)
+splits and preprocesses the new mesh. It never uses --limit. Existing training
+statistics are checked, never silently replaced. If a team dataset already
+exists, skip preparation and run --check. A CPU smoke is explicitly available
+through verify.model_b_training; changing the architecture/steps for that test
+must not replace the formal gate.
+
+Outputs under results/lei/gate include scores.csv, decision.json, report.md,
+per-run metrics, configs and a manifest with checkpoint hashes and data
+fingerprint. The runner refuses incomplete or incompatible checkpoints. --check
+is read-only and diagnoses missing data without starting training. LF is
+our fixed branch with no fitted parameters; reconcile it with Jojo's version
+before a team comparison. The extra least-squares LF-T/LF-H baselines mentioned
+in TA Feedback are team scope, not implemented here.
+
+After full training, interpretation and transfer use actual checkpoint paths:
+
+```bash
+python -m analysis.model_b_corrections --checkpoint checkpoints/b_gate_20k_aug_b_seed0/best.pt --device cuda
+python -m analysis.spectra --mesh straight --seeds 0 1 --out results/lei/spectral_response.json
+python -m data.generate --only test_fine
+python -m graphs.preprocess --splits test_fine
+python -m analysis.mesh_transfer --checkpoints checkpoints/b_gate_20k_aug_a_seed0/best.pt checkpoints/b_gate_20k_aug_b_seed0/best.pt --device cuda
+```
+
+Repeat transfer for all three final seeds and every available team model. The
+transfer tool supports every checkpoint registered in the shared trainer; C/D
+must first be merged/registered by their owners. Speedup uses the existing
+benchmark CLI separately, on the same hardware. No-go spectra compare actual
+fixed-filter response against exp(-alpha dt lambda); zero mismatch would not
+prove a linear model captures phase change. Correction maps sample ground-truth
+input states and measure area-weighted absolute learned increments, so they are
+interpretation diagnostics rather than autoregressive evaluation scores.
+
+The training integration check uses a single physical simulation, width 16,
+two layers and four CPU steps. It exercises the existing shared trainer with
+noise and augmentation, then simulates interruption at step 2 and checks the
+resumed step-4 weights bit for bit against uninterrupted training. It also
+checks the A/B parameter counts, paired initial weights and rotation-invariant
+physics. See results/lei/training_smoke.json; its score is not a gate result.
