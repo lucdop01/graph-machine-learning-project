@@ -295,7 +295,8 @@ def torch_path(runs, ci_mode):
                 expect(not pred.model.training, f"torch {target} stride {stride}: model still in training mode")
                 pred.model.train()
                 rows.append(evaluate_run(run, pred, stride)[0])
-            worst = lambda key: np.nanmax([abs(r[key] - (1.0 if "iou" in key else 0.0)) for r in rows])
+            def worst(key):
+                return np.nanmax([abs(r[key] - (1.0 if "iou" in key else 0.0)) for r in rows])
             print(f"    target {target}: worst |T error| {dT_max:.2e} K, nRMSE {worst('nrmse'):.2e}, melt MAE "
                   f"{worst('melt_mae'):.2e} K, energy (a) {worst('energy_a'):.2e}, (b) {worst('energy_b'):.2e}; "
                   f"not gated: |1 - IoU| {worst('iou'):.2e} (soft {worst('iou_soft'):.2e}), |sol| "

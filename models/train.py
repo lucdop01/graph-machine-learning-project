@@ -73,13 +73,36 @@ import torch
 import yaml
 from torch_geometric.loader import DataLoader
 
-from graphs.dataset import MeltPoolGraphs, check_stats, check_stride, load_runs, load_stats
 from evaluation.rollout import load_size_bins, selection_score
-from evaluation.torch_predictor import TorchPredictor, check_on_device, move_checked, to_host, tree_to_host
-from models.model_a import ModelA
-from models.model_b import ModelB
+from evaluation.torch_predictor import (
+    TorchPredictor,
+    check_on_device,
+    move_checked,
+    to_host,
+    tree_to_host,
+)
+from graphs.dataset import (
+    MeltPoolGraphs,
+    check_stats,
+    check_stride,
+    load_runs,
+    load_stats,
+)
+from train_harness import build_model as harness_build_model
+from train_harness import get_model_class
 
-MODELS = {"model_a": ModelA, "model_b": ModelB}
+
+def _available_models() -> dict[str, type[torch.nn.Module]]:
+    models: dict[str, type[torch.nn.Module]] = {}
+    for name in ("model_a", "model_b", "model_c", "model_d", "gcn", "rgcn"):
+        try:
+            models[name] = get_model_class(name)
+        except (ImportError, ModuleNotFoundError, NotImplementedError, AttributeError, ValueError):
+            pass
+    return models
+
+
+MODELS = _available_models()
 CKPT_DIR = "checkpoints"
 LOG_FIELDS = ("step", "lr", "train_loss", "grad_norm", "grad_norm_max", "ms_per_step", "data_ms_per_step",
               "val_score", "val_s", "time_s", "note")
@@ -111,7 +134,7 @@ def check_config(cfg):
         t[k] = typ(t[k])
     positive = [k for k in ("steps", "batch_size", "val_every", "log_every") if t[k] < 1]
     if positive or t["num_workers"] < 0 or t["seed"] < 0:
-        raise ValueError(f"steps, batch_size, val_every, log_every must be at least 1 and num_workers, seed at least 0")
+        raise ValueError("steps, batch_size, val_every, log_every must be at least 1 and num_workers, seed at least 0")
     if not (t["lr"] > 0 and t["lr_end"] > 0 and math.isfinite(t["lr"]) and math.isfinite(t["lr_end"])):
         raise ValueError("lr and lr_end must be positive")
     if not (t["noise"] >= 0 and math.isfinite(t["noise"])):
@@ -127,10 +150,7 @@ def load_config(path):
 
 
 def build_model(model_cfg, stats=None):
-    kwargs = {k: v for k, v in model_cfg.items() if k != "name"}
-    if model_cfg["name"] == "model_b":
-        kwargs["stats"] = stats
-    return MODELS[model_cfg["name"]](**kwargs)
+    return harness_build_model(model_cfg, stats=stats)
 
 
 def load_checkpoint(path, device="cpu"):
@@ -208,7 +228,9 @@ class Interval:
         self.reset()
 
     def reset(self):
-        z = lambda: torch.zeros((), dtype=torch.float64, device=self.device)
+        def z():
+            return torch.zeros((), dtype=torch.float64, device=self.device)
+
         self.loss, self.gn, self.gn_max, self.n = z(), z(), z(), 0
         self.bad = torch.full((), -1, dtype=torch.int64, device=self.device)
         self.t0, self.data_s = time.perf_counter(), 0.0
@@ -345,8 +367,15 @@ def train(cfg, name, ckpt=None):
         write_log(files["log.csv"], [], "w")
     else:
         optimizer.load_state_dict(ckpt["optimizer"])
-        adam_state = lambda sd: {f"{i}.{k}": v for i, s in sd["state"].items() for k, v in s.items()
-                                 if torch.is_tensor(v)}
+
+        def adam_state(sd):
+            return {
+                f"{i}.{k}": v
+                for i, s in sd["state"].items()
+                for k, v in s.items()
+                if torch.is_tensor(v)
+            }
+
         check_on_device(adam_state(optimizer.state_dict()), adam_state(ckpt["optimizer"]),
                         f"Adam state of {files['last.pt']}")       # on a GPU: arrived intact
         step, best, best_step, elapsed0 = ckpt["step"], ckpt["best_score"], ckpt["best_step"], ckpt["time_s"]
@@ -369,11 +398,11 @@ def train(cfg, name, ckpt=None):
         return best
 
     def checkpoint(score, elapsed, rng=None):
-        out = dict(format=1, name=name, model={k: to_host(v) for k, v in model.state_dict().items()},
-                   model_config=cfg["model"], config=cfg, target=target, stride=stride, stats=stats,
-                   train_fingerprint=stats["train_fingerprint"], size_bins=bins, step=step, score=score,
-                   best_score=best, best_step=best_step, time_s=elapsed, precision=t["precision"],
-                   torch_version=str(torch.__version__))
+        out = {"format": 1, "name": name, "model": {k: to_host(v) for k, v in model.state_dict().items()},
+                   "model_config": cfg["model"], "config": cfg, "target": target, "stride": stride, "stats": stats,
+                   "train_fingerprint": stats["train_fingerprint"], "size_bins": bins, "step": step, "score": score,
+                   "best_score": best, "best_step": best_step, "time_s": elapsed, "precision": t["precision"],
+                   "torch_version": str(torch.__version__)}
         if rng is not None:
             out.update(optimizer=tree_to_host(optimizer.state_dict()), rng=rng)
         return out

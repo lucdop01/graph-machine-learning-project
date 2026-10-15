@@ -42,7 +42,9 @@ def simulate(P, v, waypoints, nx=200, ny=100, dx=10e-6, d=100e-6,
         n_cap = int(np.ceil((path.duration + max(t_cool, t_cool_max)) / dt))
         n_steps = -(-n_cap // save_every) * save_every     # round up so the last state is a saved frame
     q0 = 2 * ETA * P / (np.pi * R_SPOT**2 * d)             # peak power density, W/m^3
-    hm = lambda a, b: 2 * a * b / (a + b)                  # conductivity between two cells
+
+    def hm(a, b):
+        return 2 * a * b / (a + b)                  # conductivity between two cells
 
     T = np.full((nx, ny), T0, dtype=float) if T_init is None else np.broadcast_to(np.asarray(T_init, float), (nx, ny)).copy()
     if fixed_mask is not None:
@@ -74,7 +76,9 @@ def simulate(P, v, waypoints, nx=200, ny=100, dx=10e-6, d=100e-6,
         if rec is not None:
             rec.update(sample(T), (i + 1) * dt)
         if (i + 1) % save_every == 0:
-            out_t.append((i + 1) * dt); out_T.append(T.astype(np.float32)); out_laser.append(path.pos((i + 1) * dt))
+            out_t.append((i + 1) * dt)
+            out_T.append(T.astype(np.float32))
+            out_laser.append(path.pos((i + 1) * dt))
             if t_cool_max is not None and i + 1 >= n_min and T.max() < T_S:   # fully solid: stop here
                 n_steps = i + 1
                 break

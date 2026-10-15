@@ -32,7 +32,8 @@ n = min(len(r["t"]) for r in res.values())
 frames = range(n // 4, n, max(1, n // 12))   # skip the start-up, sample through the track and cooling
 
 def on_ref(r, k):
-    dx = r["dx"]; nx, ny = r["T"].shape[1:]
+    dx = r["dx"]
+    nx, ny = r["T"].shape[1:]
     g = RegularGridInterpolator(((np.arange(nx) + 0.5) * dx, (np.arange(ny) + 0.5) * dx), r["T"][k].astype(float),
                                 bounds_error=False, fill_value=None)
     return g(pts).reshape(X.shape)

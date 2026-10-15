@@ -18,7 +18,8 @@ def rosenthal_point(P, v, xi, eta, d):
 def rosenthal_gauss(P, v, xi, eta, d, h=2.5e-6):
     s = np.arange(-3 * R_SPOT + h / 2, 3 * R_SPOT, h)
     SX, SY = np.meshgrid(s, s, indexing="ij")
-    w = np.exp(-2 * (SX**2 + SY**2) / R_SPOT**2); w /= w.sum()
+    w = np.exp(-2 * (SX**2 + SY**2) / R_SPOT**2)
+    w /= w.sum()
     return T0 + np.sum(w * rosenthal_point(P, v, xi - SX, eta - SY, d))
 
 P, v, dx, nx, ny = 120.0, 0.8, 5e-6, 400, 200
@@ -26,7 +27,8 @@ P, v, dx, nx, ny = 120.0, 0.8, 5e-6, 400, 200
 n_steps = int(np.ceil(1.2e-3 / v / (0.2 * dx**2 / alpha)))
 r = simulate(P, v, straight(), nx=nx, ny=ny, dx=dx, save_every=max(1, n_steps - 2), t_cool=0.0, props=props)
 T, (xl, yl) = r["T"][-1].astype(float), r["laser"][-1]
-x = (np.arange(nx) + 0.5) * dx; y = (np.arange(ny) + 0.5) * dx
+x = (np.arange(nx) + 0.5) * dx
+y = (np.arange(ny) + 0.5) * dx
 failed = 0
 for xi, eta in [(-400e-6, 0), (-200e-6, 0), (-100e-6, 0), (-50e-6, 0), (0, 60e-6), (-200e-6, 150e-6)]:
     col = [np.interp(xl + xi, x, T[:, j]) for j in range(ny)]
