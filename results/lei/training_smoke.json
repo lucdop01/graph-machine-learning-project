@@ -1,0 +1,17 @@
+{
+  "status": "pass",
+  "fixture": "one physical simulation, width 16, 2 layers, 4 CPU training steps",
+  "gate_evidence": false,
+  "parameters_matched": true,
+  "identical_seed_initialisation": true,
+  "rotation_invariant_physics": true,
+  "checkpoint_roundtrip": true,
+  "model_a_checkpoint_compatible": true,
+  "gate_scoring_pipeline": true,
+  "correction_map_export": true,
+  "mesh_transfer_export": true,
+  "interrupted_resume_bit_exact": true,
+  "best_val_score": 1.7070549189135082,
+  "first_train_loss": 0.26245424151420593,
+  "last_train_loss": 0.21655258536338806
+}

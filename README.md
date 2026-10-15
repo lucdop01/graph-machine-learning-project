@@ -9,14 +9,26 @@ moving over a thin Ti-6Al-4V plate, with melting.
 
 ## Status
 
+- **Model A** (`models/model_a.py`, `configs/model_a.yaml`): MeshGraphNet baseline with augmentations; three seeds without augmentation evaluated (`results/eval/a_seed*`).
+- **Model B** (`models/model_b.py`, `configs/model_b.yaml`): Physics-guided linear heat diffusion residual integrated into the shared training runner and unified harness (`train_harness.py`). Component and training checks pass (`verify.model_b`, `verify.model_b_training`).
+- **Model C** (by Jack, branch `jack/model-c`): Enthalpy target $dH$ with exact material table inversion ($T(H)$); harness is ready to integrate it once merged.
+- **Model D** (`models/model_d.py`, `configs/model_d.yaml`): Strict heat conservation via antisymmetric edge heat fluxes ($F_{ij} = -F_{ji}$) guaranteeing zero net internal energy accumulation bit for bit.
+- **GCN / RGCN** (`models/gcn.py`, `configs/gcn.yaml`): Standard and residual Graph Convolutional Network baselines supporting customizable stride and dataset normalization statistics.
+- **Unified Training Harness** (`train_harness.py`, `verify/mock_train.py`): Dynamic model registry and parameter injection, exact reproducible seeding across PyTorch/NumPy/Python, atomic checkpoint saving/reloading, interval streaming, and parameter verification across all architectures and production configurations.
+
 | Part | State |
 |---|---|
 | Solver (`solver/`) | Done, all six checks pass (four accuracy checks, cooling, solidification metric) |
 | Data generator (`data/generate.py`) | Done, cools every run until fully solid; full run checked on every split |
 | Graph preprocessing (`graphs/`) | Done: meshes, node data, PyTorch Geometric dataset; energy check passes (check 7) |
 | Rollout and evaluation harness (`evaluation/`) | Done: rollouts, metrics, selection score, reference predictors; the solver's own frames score zero (check 8) |
-| Model A and the training pipeline (`models/`, `configs/`) | Three seeds without augmentation done and evaluated (`results/eval/a_seed*`); three seeds with augmentation to do |
-| GCN, models B-D, U-Net grid, Laplacian, partitions, analysis | To do (`graphs/`, `models/`, `analysis/` list the planned modules) |
+| Model A (`models/model_a.py`) | Done: baseline evaluated across 3 seeds without augmentation; augmentations supported |
+| Model B (`models/model_b.py`) | Done: physics-informed linear diffusion residual integrated into harness and verified |
+| Model C (enthalpy formulation) | In progress on `jack/model-c` (Jack) |
+| Model D (`models/model_d.py`) | Done: strictly conservative flux GNN with bit-exact zero internal energy error |
+| GCN / RGCN (`models/gcn.py`) | Done: baseline graph convolution architectures with normalization stats and stride support |
+| Unified Harness (`train_harness.py`) | Done: multi-model registry, exact reproducibility, mock verified (`verify.mock_train`) |
+| U-Net grid, partitions, remaining analysis | In progress (`graphs/`, `models/`, `analysis/`) |
 
 ## Setup
 
@@ -281,10 +293,24 @@ Each block first updates every edge from its own latent and the latents of its t
 latent and the sum of its incoming edge latents, both with a residual connection. Messages go from `edge_index[0]` to
 `edge_index[1]`. Every MLP has two hidden layers of 128 with ReLU and LayerNorm on its output, except the decoder,
 which gives one value per node, the normalised dT. 2,331,905 parameters. 15 blocks at about 10 um reach 150 um, more
-than the 106 um that heat and laser cover in one 66.7 us step. Models B, C and D will reuse the backbone.
+than the 106 um that heat and laser cover in one 66.7 us step. Models B, C and D reuse the backbone.
 The first layer of each edge MLP acts on [e_ij, h_i, h_j]. Its node parts are computed once per node and then gathered
 for each edge, which is the same function with the same parameters (checkpoints are unchanged), but about a third less
 matrix work in the edge MLPs, which take most of a training step.
+
+**Model B** (`models/model_b.py`, `configs/model_b.yaml`): MeshGraphNet with a physics-informed linear heat diffusion residual. Combines explicit linear diffusion through discrete Laplace-Beltrami / cotangent edge weights with a neural residual correction that learns the nonlinear convection/phase-change deviations ($\Delta T - \Delta T_{\text{diff}}$).
+
+**Model C** (by Jack, branch `jack/model-c`): Direct enthalpy formulation. Predicts specific enthalpy change $\Delta H$ rather than $\Delta T$. During rollout, updated enthalpy is mapped back to temperature through the continuous material inversion curve $T(H)$, eliminating numerical gradient stalls and temperature discontinuities during latent heat absorption in the melting range.
+
+**Model D** (`models/model_d.py`, `configs/model_d.yaml`): Strictly conservative edge-flux GNN. Encodes nodes and edges, using an edge decoder to predict antisymmetric heat fluxes $F_{ij} = -F_{ji}$ between adjacent nodes. Node enthalpy updates sum the incoming edge fluxes and add external laser energy directly ($\Delta E_i = E_{\text{laser}, i} + \sum_{j \in \mathcal{N}(i)} F_{ji}$). Because edge fluxes cancel pair-by-pair across every interior edge, net internal conduction energy is mathematically guaranteed to sum to zero ($0.0$ bit for bit).
+
+**GCN & RGCN** (`models/gcn.py`, `configs/gcn.yaml`): Non-physics baseline graph neural networks utilizing isotropic neighborhood aggregation (with optional residual connections in RGCN). Supports initialization normalization statistics and configurable stride parameters.
+
+**Unified Training Harness** (`train_harness.py`, `verify/mock_train.py`): A modular, fully-typed training harness supporting all models (`model_a`, `model_b`, `model_c` (when merged), `model_d`, `gcn`, `rgcn`). Features include:
+- Dynamic model instantiation and constructor introspection for specialized dependencies (`stats`, `stride`).
+- Exact reproducible multi-library seeding (`torch`, `numpy`, `random`) for consistent comparison.
+- Atomic checkpoint creation and safe resume capability.
+- Comprehensive mock verification test suite (`verify/mock_train.py`) verifying parameter counts, forward-backward pass stability, gradient norms, flux antisymmetry, and checkpoint reloading across all architectures and production YAML configs.
 
 **Training** (`models/train.py`, settings in `configs/model_a.yaml`):
 
@@ -461,17 +487,17 @@ New-mesh tests reuse test_interp runs on a differently jittered mesh, so they ne
 ## Layout
 
 ```
-solver/      ti64.py (material table), paths.py (laser paths), solver.py, events.py (melting and solidification events)
-verify/      energy_balance.py, rosenthal.py, stefan.py, convergence.py, cooling.py, solidification.py,
-             graph_energy.py, harness.py, run_all.py
-data/        generate.py, splits.json, meshes/ (commit), runs/ and graphs/ (git-ignored)
-graphs/      mesh.py, preprocess.py, dataset.py, figures.py; planned: grid, laplacian, partition
-evaluation/  metrics.py, rollout.py (rollouts, evaluation, reference predictors, command line), torch_predictor.py
-models/      backbone.py (encode-process-decode), model_a.py (MeshGraphNet), train.py (training, checkpoints);
-             planned: linear filters, U-Net, GCN, models B-D
-analysis/    planned: probes, attribution, spectra
-configs/     model_a.yaml; one yaml per model and ablation
-notebooks/   project.ipynb (course requirement)
-results/     eval/ (rollout metrics), figures/ (git-ignored)
-checkpoints/ one folder per training run (git-ignored)
+solver/          ti64.py (material table), paths.py (laser paths), solver.py, events.py (melting and solidification events)
+verify/          energy_balance.py, rosenthal.py, stefan.py, convergence.py, cooling.py, solidification.py,
+                 graph_energy.py, harness.py, run_all.py, mock_train.py, model_b.py, model_b_training.py
+data/            generate.py, splits.json, meshes/ (commit), runs/ and graphs/ (git-ignored)
+graphs/          mesh.py, preprocess.py, dataset.py, figures.py
+evaluation/      metrics.py, rollout.py (rollouts, evaluation, reference predictors, command line), torch_predictor.py
+models/          backbone.py, model_a.py, model_b.py, model_d.py, gcn.py, train.py
+train_harness.py unified training engine with dynamic model registry, reproducible seeding, and atomic checkpointing
+analysis/        planned: plateau, probes, attribution, spectra
+configs/         model_a.yaml, model_b.yaml, model_d.yaml, gcn.yaml
+notebooks/       project.ipynb (course requirement)
+results/         eval/ (rollout metrics), figures/ (git-ignored)
+checkpoints/     one folder per training run (git-ignored)
 ```
