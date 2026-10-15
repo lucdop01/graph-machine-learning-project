@@ -74,11 +74,6 @@ import yaml
 from torch_geometric.loader import DataLoader
 
 from evaluation.rollout import load_size_bins, selection_score
-from evaluation.torch_predictor import TorchPredictor, check_on_device, move_checked, to_host, tree_to_host
-from models.model_a import ModelA
-from models.model_c import ModelC
-
-MODELS = {"model_a": ModelA, "model_c": ModelC}
 from evaluation.torch_predictor import (
     TorchPredictor,
     check_on_device,
@@ -111,9 +106,20 @@ MODELS = _available_models()
 CKPT_DIR = "checkpoints"
 LOG_FIELDS = ("step", "lr", "train_loss", "grad_norm", "grad_norm_max", "ms_per_step", "data_ms_per_step",
               "val_score", "val_s", "time_s", "note")
-TRAINING_KEYS = dict(steps=int, batch_size=int, lr=float, lr_end=float, noise=float, seed=int, val_every=int,
-                     log_every=int, num_workers=int, device=str, precision=str)
-OVERRIDES = ("noise", "lr", "steps", "seed", "precision")
+TRAINING_KEYS = {
+    "steps": int,
+    "batch_size": int,
+    "lr": float,
+    "lr_end": float,
+    "noise": float,
+    "seed": int,
+    "val_every": int,
+    "log_every": int,
+    "num_workers": int,
+    "device": str,
+    "precision": str,
+}
+OVERRIDES = ("noise", "lr", "steps", "seed", "precision", "device")
 FLAGS = ("augment",)                                  # true or false in the configuration (yaml booleans only)
 PRECISIONS = ("fp32", "bf16")
 
@@ -124,7 +130,7 @@ def check_config(cfg):
     """Fill types and check values. Returns the configuration with numbers as numbers (yaml reads 1e-4 as text)."""
     for section in ("model", "data", "training"):
         if not isinstance(cfg.get(section), dict):
-            raise ValueError(f"configuration has no '{section}' section")
+            raise TypeError(f"configuration section '{section}' must be a dict")
     if cfg["model"].get("name") not in MODELS:
         raise ValueError(f"model name must be one of {sorted(MODELS)}, not {cfg['model'].get('name')!r}")
     cfg["data"]["stride"] = check_stride(cfg["data"].get("stride"))
@@ -134,7 +140,7 @@ def check_config(cfg):
         raise ValueError(f"training section misses {', '.join(missing)}")
     for k in FLAGS:
         if not isinstance(t[k], bool):
-            raise ValueError(f"training.{k} must be true or false, not {t[k]!r}")
+            raise TypeError(f"training.{k} must be true or false, not {t[k]!r}")
     for k, typ in TRAINING_KEYS.items():
         t[k] = typ(t[k])
     positive = [k for k in ("steps", "batch_size", "val_every", "log_every") if t[k] < 1]
@@ -154,15 +160,15 @@ def load_config(path):
         return check_config(yaml.safe_load(f))
 
 
-def build_model(model_cfg, stats=None):
-    return harness_build_model(model_cfg, stats=stats)
+def build_model(model_cfg, stats=None, stride=None):
+    return harness_build_model(model_cfg, stats=stats, stride=stride)
 
 
 def load_checkpoint(path, device="cpu"):
     """The model of a checkpoint in evaluation mode on device, and the checkpoint dict (statistics, stride, target,
     size bins, step, scores)."""
     ckpt = torch.load(path, map_location="cpu", weights_only=True)
-    model = build_model(ckpt["model_config"], ckpt["stats"])
+    model = build_model(ckpt["model_config"], ckpt.get("stats"), stride=ckpt.get("stride"))
     model.load_state_dict(ckpt["model"])
     return move_checked(model, device, f"weights of {path}").eval(), ckpt       # on a GPU: checked on arrival
 
@@ -207,8 +213,11 @@ def batch_stream(dataset, step, t):
 
 def rng_state():
     name, keys, pos, has_gauss, cached = np.random.get_state()
-    st = dict(torch=torch.get_rng_state(), python=random.getstate(),
-              numpy=(name, keys.tolist(), int(pos), int(has_gauss), float(cached)))
+    st = {
+        "torch": torch.get_rng_state(),
+        "python": random.getstate(),
+        "numpy": (name, keys.tolist(), int(pos), int(has_gauss), float(cached)),
+    }
     if torch.cuda.is_available():
         st["cuda"] = torch.cuda.get_rng_state_all()
     return st
@@ -257,8 +266,13 @@ class Interval:
                                      f"(--resume continues from the last validation step, if one was saved)")
         n = max(self.n, 1)
         ms = 1e3 * (time.perf_counter() - self.t0) / n
-        out = dict(train_loss=loss / n, grad_norm=gn / n, grad_norm_max=gn_max,
-                   ms_per_step=ms, data_ms_per_step=1e3 * self.data_s / n)
+        out = {
+            "train_loss": loss / n,
+            "grad_norm": gn / n,
+            "grad_norm_max": gn_max,
+            "ms_per_step": ms,
+            "data_ms_per_step": 1e3 * self.data_s / n,
+        }
         steps = self.n
         self.reset()
         return out, steps
@@ -350,7 +364,7 @@ def train(cfg, name, ckpt=None):
         random.seed(t["seed"])
         np.random.seed(t["seed"])
         torch.manual_seed(t["seed"])
-    model = build_model(cfg["model"], stats)
+    model = build_model(cfg["model"], stats, stride=stride)
     target = model.target
     if target not in stats["target"]:
         raise ValueError(f"no statistics for target {target}")
@@ -415,7 +429,7 @@ def train(cfg, name, ckpt=None):
     if device.type == "cuda":
         torch.cuda.reset_peak_memory_stats(device)
     t_start = time.perf_counter()
-    interval, stream, timing = Interval(device), batch_stream(train_set, step, t), dict(train=[], val=[])
+    interval, stream, timing = Interval(device), batch_stream(train_set, step, t), {"train": [], "val": []}
     log = Log(files["log.csv"])
     while step < t["steps"]:
         t_data = time.perf_counter()
@@ -493,6 +507,7 @@ def main(argv=None):
     ap.add_argument("--steps", type=int)
     ap.add_argument("--seed", type=int)
     ap.add_argument("--precision", choices=PRECISIONS, help="fp32, or bf16 matrix products in training")
+    ap.add_argument("--device", choices=("cpu", "cuda"), help="training device: cpu or cuda")
     ap.add_argument("--resume", action="store_true", help="continue checkpoints/<name>/last.pt")
     a = ap.parse_args(argv)
 

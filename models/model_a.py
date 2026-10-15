@@ -14,7 +14,7 @@ from models.backbone import EncodeProcessDecode
 class ModelA(nn.Module):
     target = "dT"
 
-    def __init__(self, width=128, layers=15, hidden_layers=2):
+    def __init__(self, width=128, layers=15, hidden_layers=2, stats=None, stride=None, **kwargs):
         super().__init__()
         self.net = EncodeProcessDecode(len(NODE_FEATURES), len(EDGE_FEATURES), 1, width, layers, hidden_layers)
 
