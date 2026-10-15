@@ -38,8 +38,14 @@ class ModelD(nn.Module):
         mean: float = 0.0,
         std: float = 1.0,
         rho: float = RHO,
+        stats: dict[str, Any] | None = None,
+        stride: int | None = None,
+        **kwargs: Any,
     ):
         super().__init__()
+        if stats is not None and "target" in stats and "dH" in stats["target"]:
+            mean = float(stats["target"]["dH"]["mean"])
+            std = float(stats["target"]["dH"]["std"])
         self.width = width
         self.layers = layers
         self.hidden_layers = hidden_layers

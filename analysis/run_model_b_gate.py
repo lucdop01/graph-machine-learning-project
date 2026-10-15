@@ -10,19 +10,20 @@ import copy
 import csv
 import hashlib
 import json
-from pathlib import Path
 import subprocess
 import sys
+from pathlib import Path
+
 import numpy as np
 import torch
 import yaml
 
-from models.train import load_config, load_checkpoint
-from graphs.dataset import load_stats, load_runs, MeltPoolGraphs
-from evaluation.rollout import load_size_bins, evaluate_split, write_results
-from evaluation.torch_predictor import TorchPredictor
-from models.linear_filter import LinearFilter
 from analysis.model_b_gate import decide
+from evaluation.rollout import evaluate_split, load_size_bins, write_results
+from evaluation.torch_predictor import TorchPredictor
+from graphs.dataset import MeltPoolGraphs, load_runs, load_stats
+from models.linear_filter import LinearFilter
+from models.train import load_checkpoint, load_config
 
 SEEDS = (0, 1, 2)
 DOMAINS = {"val": ("val", 0), "new_mesh": ("test_interp", 1)}
@@ -78,8 +79,8 @@ def main(argv=None):
     ap.add_argument("--train", action="store_true")
     ap.add_argument("--resume", action="store_true")
     ap.add_argument("--steps", type=int, default=20000)
-    ap.add_argument("--device", default="cuda", choices=("cuda", "cpu"))
-    ap.add_argument("--precision", default="bf16", choices=("bf16", "fp32"))
+    ap.add_argument("--device", default="cpu", choices=("cuda", "cpu"))
+    ap.add_argument("--precision", default="fp32", choices=("bf16", "fp32"))
     ap.add_argument("--prefix", default="b_gate_20k_aug")
     ap.add_argument("--out", default="results/lei/gate")
     a = ap.parse_args(argv)
@@ -114,9 +115,16 @@ def main(argv=None):
         previous = json.loads(previous_manifest.read_text())
         if previous.get("configs") != configs:
             raise SystemExit("Output directory belongs to another gate configuration; choose a new --out and --prefix")
-    manifest = dict(status="pending", rule="see analysis/model_b_gate.py", steps=a.steps,
-                    seeds=list(SEEDS), domains=DOMAINS, train_fingerprint=stats["train_fingerprint"],
-                    torch_version=str(torch.__version__), checkpoints={})
+    manifest = {
+        "status": "pending",
+        "rule": "see analysis/model_b_gate.py",
+        "steps": a.steps,
+        "seeds": list(SEEDS),
+        "domains": DOMAINS,
+        "train_fingerprint": stats["train_fingerprint"],
+        "torch_version": str(torch.__version__),
+        "checkpoints": {},
+    }
     try:
         manifest["git_commit"] = subprocess.check_output(["git", "rev-parse", "HEAD"], text=True).strip()
         manifest["git_dirty"] = bool(subprocess.check_output(["git", "status", "--porcelain"], text=True).strip())
@@ -156,19 +164,29 @@ def main(argv=None):
             best = last.with_name("best.pt")
             model, ckpt = load_checkpoint(str(best), a.device)
             validate_checkpoint(ckpt, cfg, stats)
-            manifest["checkpoints"][name] = dict(best_step=ckpt["step"], sha256=sha256(best))
+            manifest["checkpoints"][name] = {"best_step": ckpt["step"], "sha256": sha256(best)}
             predictor = TorchPredictor(model, stats, 5, device=a.device, name=name)
             for domain, domain_runs in runs.items():
                 per_run, summary = evaluate_split(domain_runs, predictor, 5, bins)
                 write_results(per_run, summary, str(out), f"{name}_{domain}")
-                rows.append(dict(model=model_name, seed=seed, domain=domain,
-                                 nrmse=summary["nrmse_mean"], melt_mae=summary["melt_mae"]))
+                rows.append({
+                    "model": model_name,
+                    "seed": seed,
+                    "domain": domain,
+                    "nrmse": summary["nrmse_mean"],
+                    "melt_mae": summary["melt_mae"],
+                })
             del predictor, model
     for domain, domain_runs in runs.items():
         per_run, summary = evaluate_split(domain_runs, LinearFilter(), 5, bins)
         write_results(per_run, summary, str(out), f"lf_{domain}")
-        rows.extend(dict(model="LF", seed=seed, domain=domain, nrmse=summary["nrmse_mean"],
-                         melt_mae=summary["melt_mae"]) for seed in SEEDS)
+        rows.extend({
+            "model": "LF",
+            "seed": seed,
+            "domain": domain,
+            "nrmse": summary["nrmse_mean"],
+            "melt_mae": summary["melt_mae"],
+        } for seed in SEEDS)
     with (out / "scores.csv").open("w", newline="") as f:
         w = csv.DictWriter(f, fieldnames=["model", "seed", "domain", "nrmse", "melt_mae"])
         w.writeheader()
@@ -183,7 +201,7 @@ def main(argv=None):
     for domain in DOMAINS:
         for m in ("A", "B", "LF"):
             group = [r for r in rows if r["domain"] == domain and r["model"] == m]
-            fmt = lambda key: f"{np.mean([r[key] for r in group]):.6g} ± {np.std([r[key] for r in group], ddof=1):.3g}"
+            fmt = lambda key, grp=group: f"{np.mean([r[key] for r in grp]):.6g} ± {np.std([r[key] for r in grp], ddof=1):.3g}"
             report.append(f"| {domain} | {m} | {fmt('nrmse')} | {fmt('melt_mae')} |")
     report += ["", "LF is deterministic: repeated rows label the paired comparisons, not independent fits.",
                "Decision uses both domains and the preregistered nRMSE rule; melting MAE is descriptive."]

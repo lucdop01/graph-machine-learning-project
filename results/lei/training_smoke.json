@@ -11,7 +11,7 @@
   "correction_map_export": true,
   "mesh_transfer_export": true,
   "interrupted_resume_bit_exact": true,
-  "best_val_score": 1.7070549189135082,
+  "best_val_score": 1.707054884235116,
   "first_train_loss": 0.26245424151420593,
   "last_train_loss": 0.21655258536338806
 }

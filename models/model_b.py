@@ -4,9 +4,11 @@ The shared Model A can be passed as correction; it must return one normalised
 dT residual per node. This module owns no training loop or new backbone.
 """
 import math
+
 import torch
 from torch import nn
-from solver.ti64 import K_CONST, CP_CONST, RHO
+
+from solver.ti64 import CP_CONST, K_CONST, RHO
 
 
 class LinearDiffusion(nn.Module):
@@ -53,7 +55,8 @@ class ModelB(nn.Module):
     target = "dT"
 
     def __init__(self, correction=None, stats=None, width=128, layers=15, hidden_layers=2,
-                 conductivity=K_CONST, heat_capacity=CP_CONST, max_substeps=10000):
+                 conductivity=K_CONST, heat_capacity=CP_CONST, max_substeps=10000,
+                 stride=None, **kwargs):
         super().__init__()
         if stats is None:
             raise ValueError("ModelB needs the training statistics (or checkpoint stats)")
