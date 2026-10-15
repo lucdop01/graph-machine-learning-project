@@ -1,0 +1,23 @@
+# GCN baseline (plan step 4). python train_harness.py --config configs/gcn.yaml --name <run>
+# Evaluates graph convolution ignoring edge features (no metric geometry / directions).
+model:
+  name: gcn
+  width: 128              # latent width
+  layers: 15              # 15 message passing blocks
+  hidden_layers: 2        # hidden layers per node encoder/decoder MLP
+  use_edge_weight: false  # standard GCN ignores edge features
+data:
+  stride: 5               # saved frames per model step: 5 x 13.34 us = 66.7 us
+training:
+  steps: 100000           # 100,000 steps of 4 graphs (tuning: 20,000)
+  batch_size: 4
+  lr: 3.0e-4              # Adam, start of the exponential decay
+  lr_end: 1.0e-6          # reached at the last step of the run
+  noise: 0.03             # input noise std as a fraction of the train spread of T
+  seed: 0
+  val_every: 2000         # validation rollouts (selection score over the 20 val runs) and checkpoints
+  log_every: 100
+  num_workers: 0          # DataLoader workers; 0 on Windows, and needed for an exact --resume
+  device: cpu
+  augment: true           # rotational augmentation
+  precision: fp32

@@ -157,6 +157,9 @@ def find_pair(run, partners):
 
 
 def make_predictor(name, partners=None):
+    if name == "laplacian":
+        from models.linear_filter import LinearFilter
+        return LinearFilter()
     if name == "oracle":
         return Oracle()
     if name == "persistence":
@@ -538,7 +541,7 @@ def main():
     ap = argparse.ArgumentParser(description=__doc__.split("\n")[0])
     ap.add_argument("--split", default="val")
     ap.add_argument("--stride", type=int, help="saved frames per step (default 5, or the checkpoint's stride)")
-    ap.add_argument("--predictor", choices=("oracle", "persistence", "offset", "cross"),
+    ap.add_argument("--predictor", choices=("oracle", "persistence", "offset", "cross", "laplacian"),
                     help="reference predictor (default oracle); leave out with --checkpoint")
     ap.add_argument("--checkpoint", help="evaluate a trained model: checkpoints/<run>/best.pt (models/train.py)")
     ap.add_argument("--device", default="cpu", help="device for --checkpoint: cpu or cuda")

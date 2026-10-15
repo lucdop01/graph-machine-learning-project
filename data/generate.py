@@ -5,7 +5,9 @@ Usage (from repo root):
   python -m data.generate --limit 1        # one run per split, smoke test
 Every run except week1 cools until the whole plate is below the solidus, for at least T_COOL_MIN and at most
 T_COOL_MAX. A run that reaches T_COOL_MAX with liquid left is kept but flagged (complete = false)."""
-import argparse, json, os
+import argparse
+import json
+import os
 import h5py
 import numpy as np
 from scipy.stats import qmc
@@ -64,15 +66,21 @@ def run_until(n, candidates, split, path_name, sim, name_fmt, check_boil=True, c
 
 def main(limit=None, only=None):
     os.makedirs(OUT, exist_ok=True)
-    want = (lambda s: only is None or s in only)
-    cap = (lambda n: min(n, limit) if limit else n)
+    def want(s):
+        return only is None or s in only
+
+    def cap(n):
+        return min(n, limit) if limit else n
+
     rng = np.random.default_rng(0)
     interior = [p for p in lhs(260, P_RANGE, V_RANGE, seed=0) if not in_hot(*p)]
     rng.shuffle(interior)
     pools = dict(train=interior[:150], val=interior[150:170], test_interp=interior[170:200])
     # replacements for boiled runs; disjoint per split so no setting can appear in two splits
     spares = dict(train=interior[200:225], val=interior[225:235], test_interp=interior[235:])
-    std = lambda P, v: simulate(P, v, straight(), **COOL)
+
+    def std(P, v):
+        return simulate(P, v, straight(), **COOL)
     index = []
     if want("week1"):
         index += run_until(cap(50), lhs(50, P_RANGE, V_RANGE, seed=5), "week1", "straight",

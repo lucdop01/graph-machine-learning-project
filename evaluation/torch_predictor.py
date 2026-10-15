@@ -208,7 +208,8 @@ def check_on_device(on_device, source, what):
 def move_checked(model, device, what):
     """model.to(device). On a GPU every parameter and buffer that was on the CPU is then checked against its CPU
     value (check_on_device), so a damaged upload is repaired or stops the program. Returns the model."""
-    tensors = lambda: {**dict(model.named_parameters()), **dict(model.named_buffers())}
+    def tensors():
+        return {**dict(model.named_parameters()), **dict(model.named_buffers())}
     source = ({k: v.detach().clone() for k, v in tensors().items() if v.device.type == "cpu"}
               if needs_verify(device) else {})
     model = model.to(device)
@@ -232,6 +233,9 @@ class TorchPredictor:
         self.builder = SampleBuilder(stats, self.stride, None if self.verify else self.device)
         self._mesh = {}                              # mesh tensors on the device, checked once per mesh
         self.mean, self.std = float(stats["target"][target]["mean"]), float(stats["target"][target]["std"])
+        set_stats_fn = getattr(self.model, "set_stats", None)
+        if callable(set_stats_fn):
+            set_stats_fn(self.mean, self.std)
         self.name = name or f"{type(model).__name__}_{target}"
 
     def reset(self, run):
