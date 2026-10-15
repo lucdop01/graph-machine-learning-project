@@ -74,6 +74,11 @@ import yaml
 from torch_geometric.loader import DataLoader
 
 from evaluation.rollout import load_size_bins, selection_score
+from evaluation.torch_predictor import TorchPredictor, check_on_device, move_checked, to_host, tree_to_host
+from models.model_a import ModelA
+from models.model_c import ModelC
+
+MODELS = {"model_a": ModelA, "model_c": ModelC}
 from evaluation.torch_predictor import (
     TorchPredictor,
     check_on_device,
