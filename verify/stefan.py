@@ -11,16 +11,19 @@ RHO, K, C, L = 4420.0, 30.0, 750.0, 286e3          # constant liquid-like proper
 T_S, DT_M, T_HOT = 1900.0, 2.0, 2400.0             # narrow 2 K melting range, close to Neumann's sharp front
 T_MELT = T_S + DT_M / 2
 _T = np.linspace(300.0, 6000.0, 60001)
-_phi = lambda T: np.clip((T - T_S) / DT_M, 0.0, 1.0)
+def _phi(T):
+    return np.clip((T - T_S) / DT_M, 0.0, 1.0)
+
 _H = C * (_T - 300.0) + L * _phi(_T)
 props = dict(k=lambda T: np.full_like(np.asarray(T, float), K), cp=lambda T: np.full_like(np.asarray(T, float), C),
              H_from_T=lambda T: np.interp(T, _T, _H), T_from_H=lambda H: np.interp(H, _H, _T))
 alpha = K / (RHO * C)
 St = C * (T_HOT - T_MELT) / L
-lam = brentq(lambda l: l * np.exp(l * l) * erf(l) - St / np.sqrt(np.pi), 1e-6, 5.0)
+lam = brentq(lambda x: x * np.exp(x * x) * erf(x) - St / np.sqrt(np.pi), 1e-6, 5.0)
 
 dx, nx, ny = 2e-6, 400, 3
-mask = np.zeros((nx, ny), bool); mask[0, :] = True
+mask = np.zeros((nx, ny), bool)
+mask[0, :] = True
 r = simulate(0.0, 1.0, [(0.0, 0.0), (1e-9, 0.0)], nx=nx, ny=ny, dx=dx, t_cool=9e-3, save_every=4000,
              props=props, T_init=T_S, fixed_mask=mask, fixed_T=T_HOT)
 print(f"St = {St:.3f}, lambda = {lam:.4f}, alpha = {alpha:.3e} m^2/s, steps = {r['n_steps']}")

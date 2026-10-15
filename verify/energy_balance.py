@@ -1,6 +1,5 @@
 """Check 1: energy in from the laser must equal the change in stored enthalpy (edges are insulated).
 Usage: python -m verify.energy_balance     Pass: |error| < 1 %."""
-import numpy as np
 from solver.solver import simulate
 from solver.paths import straight, zigzag
 from solver.ti64 import RHO, H_from_T, ETA
