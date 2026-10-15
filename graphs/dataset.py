@@ -86,6 +86,7 @@ except ModuleNotFoundError as e:
 
 from solver.ti64 import liquid_fraction
 from graphs.mesh import PARAMS, get_mesh
+from graphs.laplacian import cotangent_weights
 from graphs.preprocess import (OUT, data_hash, grid_of, material, node_laser_energy, node_temperature, processed_file,
                                processed_problems, read_processed_header)
 
@@ -335,7 +336,10 @@ class SampleBuilder:
             rel, dist = m.edge_vectors()
             st = dict(edge_index=torch.from_numpy(m.edge_index), edge_attr=self._edge_attr(rel, dist),
                       rev_edge=torch.from_numpy(m.rev), pos=torch.tensor(m.pos, dtype=torch.float32),
-                      boundary=torch.from_numpy(m.boundary))
+                      boundary=torch.from_numpy(m.boundary),
+                      area=torch.tensor(m.area, dtype=torch.float32),
+                      cotangent_weight=torch.tensor(cotangent_weights(m.pos, m.tri, m.edge_index),
+                                                   dtype=torch.float32))
             self._static[key] = {k: v.to(self.device) for k, v in st.items()} if self.device is not None else st
             self._geometry[key] = (rel, dist, np.asarray(m.pos, dtype=np.float64))
         return self._static[key]
@@ -367,7 +371,8 @@ class SampleBuilder:
         raw = dict(T=f32(T0), H=f32(run.H_from_T(T0)), E=f32(E), V=f32(run.V))
         if T_next is not None:
             raw.update(T_next=f32(T_next), H_next=f32(run.H_from_T(np.asarray(T_next, dtype=np.float64))))
-        return GraphSample(x=f32(x), **st, **raw, t=float(run.t[k]), k=k, stride=s, run=run.name)
+        return GraphSample(x=f32(x), **st, **raw, dt=float(run.t[k + s] - run.t[k]),
+                           t=float(run.t[k]), k=k, stride=s, run=run.name)
 
 
 def random_orthogonal():

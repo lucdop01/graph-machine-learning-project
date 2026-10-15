@@ -1,0 +1,20 @@
+# Declarative integration contract for the forthcoming shared training runner.
+# This repository currently has no config-consuming training entry point.
+model: B
+target: dT
+stride: 5
+seeds: [0, 1, 2]
+correction: model_a
+diffusion:
+  conductivity: 20.0       # W/(m K), fixed
+  heat_capacity: 600.0     # J/(kg K), fixed
+  max_substeps: 10000
+checkpoint_selection: val_rollout_nrmse
+gate:
+  deadline: '2026-10-19'
+  metric: nrmse
+  domains: [val, new_mesh]
+  margin: max_sample_std_A_B
+  new_mesh_split: test_interp
+  new_mesh_seed: 1
+# Match all backbone, optimiser and sweep choices to A in the shared harness.

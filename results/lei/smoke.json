@@ -1,0 +1,45 @@
+{
+  "predictor": "laplacian_filter",
+  "split": "week1",
+  "mesh": [
+    "straight seed 0"
+  ],
+  "stride": 5,
+  "step_us": 132.60000000000002,
+  "runs": 1,
+  "nrmse_mean": 0.09466640870620281,
+  "nrmse_median": 0.09466640870620281,
+  "nrmse_max": 0.09466640870620281,
+  "energy": {
+    "a": {
+      "median": 0.0019934853043009934,
+      "max": 0.0019934853043009934
+    },
+    "b": {
+      "median": 0.0019802837010238065,
+      "max": 0.0019802837010238065
+    },
+    "end": {
+      "median": -0.0019802837010238065,
+      "max": 0.0019802837010238065
+    }
+  },
+  "budget": {
+    "a": {
+      "median": 3.1766654935622348e-15,
+      "max": 3.1766654935622348e-15
+    },
+    "b": {
+      "median": 1.8152697796748083e-15,
+      "max": 1.8152697796748083e-15
+    },
+    "end": {
+      "median": -1.8152697796748083e-15,
+      "max": 1.8152697796748083e-15
+    }
+  },
+  "wall_s": 0.23151299999699404,
+  "steps": 9,
+  "note": "Untrained fixed-filter smoke on one in-memory week1 simulation; not Model B gate evidence.",
+  "torch_numpy_step_max_abs_K": 0.0013087713200548023
+}
