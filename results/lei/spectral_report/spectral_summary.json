@@ -1,0 +1,33 @@
+{
+  "source": "results/lei/spectral_response.json",
+  "step_us": 66.7,
+  "alpha_m2_s": 7.541478129713424e-06,
+  "meshes": [
+    {
+      "mesh_seed": 0,
+      "nodes": 5172,
+      "substeps": 108,
+      "lambda_max_m_inv2": 109817999998.43298,
+      "max_sampled_abs_gain_error": 0.002513887679347543,
+      "z_at_max_sampled_error": 2.0050526654728618,
+      "zero_mode_m_inv2": 5.857355045435497e-09
+    },
+    {
+      "mesh_seed": 1,
+      "nodes": 5174,
+      "substeps": 106,
+      "lambda_max_m_inv2": 110139666317.24838,
+      "max_sampled_abs_gain_error": 0.0025613973539352075,
+      "z_at_max_sampled_error": 2.0091017872006294,
+      "zero_mode_m_inv2": 6.997067369951537e-10
+    }
+  ],
+  "low_mode_comparison": [
+    {
+      "reference_seed": 0,
+      "compared_seed": 1,
+      "max_relative_sorted_low_mode_difference": 8.881478180783194e-05
+    }
+  ],
+  "limitation": "Same linear graph operator, homogeneous source-free diffusion; not nonlinear solver accuracy or trained-model mesh transfer. Max gain error is over the stored frequency samples."
+}
