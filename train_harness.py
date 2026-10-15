@@ -68,7 +68,7 @@ TRAINING_KEYS = {
     "device": str,
     "precision": str,
 }
-OVERRIDES = ("noise", "lr", "steps", "seed", "precision", "device", "batch_size")
+OVERRIDES = ("noise", "lr", "steps", "seed", "precision", "device", "batch_size", "val_every", "log_every")
 FLAGS = ("augment",)
 PRECISIONS = ("fp32", "bf16")
 
@@ -697,6 +697,18 @@ def train(cfg: dict[str, Any], name: str, ckpt: dict[str, Any] | None = None) ->
             interval.t0 = time.perf_counter()
 
     log.flush()
+    steps_timed = sum(n for n, _ in timing["train"])
+    ms = sum(n * m for n, m in timing["train"]) / max(steps_timed, 1)
+    val_s = float(np.mean(timing["val"])) if timing["val"] else float("nan")
+    val_every = max(t.get("val_every", 2000), 1)
+    val_s_safe = val_s if not math.isnan(val_s) else 0.0
+    tune_h = (20_000 * ms / 1e3 + (20_000 / val_every) * val_s_safe) / 3600.0
+    full_h = (100_000 * ms / 1e3 + (100_000 / val_every) * val_s_safe) / 3600.0
+    mem = (f", peak GPU memory {torch.cuda.max_memory_allocated(device) / (1024**3):.2f} GiB"
+           if device.type == "cuda" else "")
+    print(f"\n[{name}] Timing profile: {ms:.1f} ms/step, {val_s:.1f} s/val{mem}.")
+    print(f"[{name}] Projected: 20k-step trial ~ {tune_h:.2f} h | 100k-step run ~ {full_h:.2f} h on this machine.\n")
+
     if best_step is not None:
         print(f"[{name}] Best validation score: {best:.5g} at step {best_step} -> {files['best.pt']}")
     else:
@@ -831,6 +843,8 @@ def build_cli_parser() -> argparse.ArgumentParser:
     ap.add_argument("--precision", choices=PRECISIONS, help="Override precision (fp32 or bf16)")
     ap.add_argument("--device", help="Override compute device (e.g. cuda or cpu)")
     ap.add_argument("--batch-size", type=int, dest="batch_size", help="Override training batch size")
+    ap.add_argument("--val-every", "--val_every", type=int, dest="val_every", help="Override validation interval")
+    ap.add_argument("--log-every", "--log_every", type=int, dest="log_every", help="Override log interval")
     return ap
 
 

@@ -66,11 +66,21 @@ class ModelD(nn.Module):
         self.std.fill_(float(std))
 
     def fluxes(self, g: Any) -> tuple[torch.Tensor, torch.Tensor]:
-        """Compute raw edge fluxes and antisymmetric fluxes F_ij."""
+        """Compute raw edge fluxes and antisymmetric fluxes F_ij in Joules."""
         _, e = self.net.latents(g.x, g.edge_attr, g.edge_index)
         with torch.autocast(e.device.type, enabled=False):
             f = self.edge_decoder(e.to(self.edge_decoder[0].weight.dtype)).squeeze(-1)
-        F = 0.5 * (f - f[g.rev_edge])
+        f_antisym = 0.5 * (f - f[g.rev_edge])
+
+        # Scale by characteristic edge thermal capacity (rho * sqrt(V_i * V_j) * std)
+        # Symmetrically defined across edge and reverse edge, preserving exact antisymmetry
+        V = getattr(g, "V", None)
+        if V is not None:
+            src, dst = g.edge_index[0], g.edge_index[1]
+            V_edge = torch.sqrt(torch.clamp(V[src] * V[dst], min=1e-30)).to(f.dtype)
+            F = (self.rho * V_edge * self.std) * f_antisym
+        else:
+            F = f_antisym
         return f, F
 
     def forward(self, g: Any) -> torch.Tensor:
