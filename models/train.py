@@ -88,14 +88,21 @@ from graphs.dataset import (
     load_runs,
     load_stats,
 )
-from train_harness import build_model as harness_build_model, get_model_class
+from train_harness import build_model as harness_build_model
+from train_harness import get_model_class
 
-MODELS = {
-    "model_a": get_model_class("model_a"),
-    "model_b": get_model_class("model_b"),
-    "gcn": get_model_class("gcn"),
-    "model_d": get_model_class("model_d"),
-}
+
+def _available_models() -> dict[str, type[torch.nn.Module]]:
+    models: dict[str, type[torch.nn.Module]] = {}
+    for name in ("model_a", "model_b", "model_c", "model_d", "gcn", "rgcn"):
+        try:
+            models[name] = get_model_class(name)
+        except (ImportError, ModuleNotFoundError, NotImplementedError, AttributeError, ValueError):
+            pass
+    return models
+
+
+MODELS = _available_models()
 CKPT_DIR = "checkpoints"
 LOG_FIELDS = ("step", "lr", "train_loss", "grad_norm", "grad_norm_max", "ms_per_step", "data_ms_per_step",
               "val_score", "val_s", "time_s", "note")

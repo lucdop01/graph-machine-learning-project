@@ -54,11 +54,16 @@ class GCNModel(nn.Module):
         layers: int = 15,
         hidden_layers: int = 2,
         use_edge_weight: bool = False,
+        stats: dict[str, Any] | None = None,
+        stride: int = 5,
+        **kwargs: Any,
     ):
         super().__init__()
         self.width = width
         self.layers = layers
         self.use_edge_weight = use_edge_weight
+        self.stats = stats
+        self.stride = stride
 
         self.node_encoder = mlp(
             len(NODE_FEATURES), width, width, hidden_layers=hidden_layers, layer_norm=True
@@ -80,3 +85,6 @@ class GCNModel(nn.Module):
             h = block(h, g.edge_index, edge_weight=edge_weight)
 
         return self.node_decoder(h).squeeze(-1)
+
+
+RGCNModel = GCNModel

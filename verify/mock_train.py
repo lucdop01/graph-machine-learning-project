@@ -22,6 +22,7 @@ from train_harness import (
     build_model,
     execute_train_step,
     generate_sweep_candidates,
+    get_model_class,
     init_run_files,
     load_config,
     rng_state,
@@ -52,6 +53,11 @@ def create_mock_batch(num_nodes: int = 16, num_edges: int = 32) -> Any:
     pos = torch.zeros((num_nodes, 2), dtype=torch.float32)
     boundary = torch.zeros(num_nodes, dtype=torch.float32)
 
+    area = torch.full((num_nodes,), 1e-10, dtype=torch.float32)
+    cotangent_weight = torch.ones(2 * half, dtype=torch.float32)
+    dt = torch.tensor(1.334e-5, dtype=torch.float32)
+    batch = torch.zeros(num_nodes, dtype=torch.int64)
+
     return GraphSample(
         x=x,
         edge_index=edge_index,
@@ -65,6 +71,10 @@ def create_mock_batch(num_nodes: int = 16, num_edges: int = 32) -> Any:
         E=E,
         pos=pos,
         boundary=boundary,
+        area=area,
+        cotangent_weight=cotangent_weight,
+        dt=dt,
+        batch=batch,
     )
 
 
@@ -75,13 +85,25 @@ def main():
 
     set_all_seeds(0)
     device = torch.device("cpu")
+    mock_stats = {
+        "target": {
+            "dT": {"mean": 0.0, "std": 10.0},
+            "dH": {"mean": 0.0, "std": 5000.0},
+        },
+        "node": {"T": {"std": 358.0}},
+    }
 
-    # 1. Model instantiation & forward/backward verification (Model A, GCN, Model D)
+    # 1. Model instantiation & forward/backward verification (Model A, B, D, GCN, RGCN, + C if present)
     print("--- 1. Testing Model Architectures (Mock Size: width=16, layers=2) ---")
-    models_to_test = ("model_a", "gcn", "model_d")
+    models_to_test = ["model_a", "model_b", "model_d", "gcn", "rgcn"]
+    try:
+        get_model_class("model_c")
+        models_to_test.append("model_c")
+    except (ImportError, ModuleNotFoundError, NotImplementedError, AttributeError, ValueError):
+        pass
     for model_name in models_to_test:
         m_cfg = {"name": model_name, "width": 16, "layers": 2, "hidden_layers": 1}
-        test_model = build_model(m_cfg)
+        test_model = build_model(m_cfg, stats=mock_stats, stride=5)
         n_params = sum(p.numel() for p in test_model.parameters())
         tgt = getattr(test_model, "target", "dT")
         mean = 0.0
@@ -109,7 +131,7 @@ def main():
 
     # Explicit Model D physics verification (flux antisymmetry & zero internal flux sum)
     print("\n--- 2. Testing Model D Exact Physics (Antisymmetry & Heat Conservation) ---")
-    m_d = build_model({"name": "model_d", "width": 16, "layers": 2, "hidden_layers": 1})
+    m_d = build_model({"name": "model_d", "width": 16, "layers": 2, "hidden_layers": 1}, stats=mock_stats, stride=5)
     assert isinstance(m_d, ModelD)
     mb = create_mock_batch()
     _, F_anti = m_d.fluxes(mb)
@@ -119,12 +141,19 @@ def main():
     print("   [PASS] Flux antisymmetry verified: F_ij == -F_ji bit for bit")
     print(f"   [PASS] Mesh internal conduction sum verified: sum(fluxes) = {net_flux_sum:.4e} (identically 0.0)")
 
-    # 3. Production Config Verification (model_a.yaml, gcn.yaml, model_d.yaml)
+    # 3. Production Config Verification (model_a.yaml, model_b.yaml, model_d.yaml, gcn.yaml)
     print("\n--- 3. Testing Production YAML Configurations ---")
-    config_paths = ("configs/model_a.yaml", "configs/gcn.yaml", "configs/model_d.yaml")
+    config_paths = [
+        "configs/model_a.yaml",
+        "configs/model_b.yaml",
+        "configs/model_d.yaml",
+        "configs/gcn.yaml",
+    ]
+    if os.path.exists("configs/model_c.yaml"):
+        config_paths.append("configs/model_c.yaml")
     for cp in config_paths:
         cfg = load_config(cp)
-        prod_model = build_model(cfg["model"])
+        prod_model = build_model(cfg["model"], stats=mock_stats, stride=cfg["data"]["stride"])
         n_params = sum(p.numel() for p in prod_model.parameters())
         prod_tgt = getattr(prod_model, "target", "dT")
         prod_mean = 0.0
@@ -169,7 +198,7 @@ def main():
     print("\n--- 5. Testing Checkpointing & Atomic Reload for All Models ---")
     for m_name in models_to_test:
         sub_cfg = {"name": m_name, "width": 16, "layers": 2, "hidden_layers": 1}
-        sub_model = build_model(sub_cfg)
+        sub_model = build_model(sub_cfg, stats=mock_stats, stride=5)
         sub_opt = torch.optim.Adam(sub_model.parameters(), lr=1e-3)
         sub_tgt = getattr(sub_model, "target", "dT")
         mock_run_name = f"mock_{m_name}_run"
@@ -177,9 +206,10 @@ def main():
         os.makedirs(os.path.dirname(mock_files["best.pt"]), exist_ok=True)
 
         assert_weights_finite(sub_model, 1)
-        mock_stats = {
+        ckpt_stats = {
             "train_fingerprint": "mock_fp",
-            "target": {sub_tgt: {"mean": 0.0, "std": 10.0}},
+            "target": {"dT": {"mean": 0.0, "std": 10.0}, "dH": {"mean": 0.0, "std": 5000.0}},
+            "node": {"T": {"std": 358.0}},
         }
         mock_bins = {"train_fingerprint": "mock_fp", "bins": [0, 10]}
         ckpt = build_checkpoint(
@@ -188,7 +218,7 @@ def main():
             cfg={"model": sub_cfg, "data": {"stride": 5}, "training": {"precision": "fp32"}},
             target=sub_tgt,
             stride=5,
-            stats=mock_stats,
+            stats=ckpt_stats,
             bins=mock_bins,
             step=1,
             score=0.042,

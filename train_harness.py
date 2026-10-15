@@ -20,6 +20,7 @@ from __future__ import annotations
 import argparse
 import csv
 import importlib
+import inspect
 import itertools
 import math
 import os
@@ -93,6 +94,7 @@ def load_known_model(key: str, name: str) -> type[torch.nn.Module]:
         "model_c": ("models.model_c", "ModelC"),
         "model_d": ("models.model_d", "ModelD"),
         "gcn": ("models.gcn", "GCNModel"),
+        "rgcn": ("models.gcn", "RGCNModel"),
         "unet": ("models.unet", "UNetModel"),
         "linear_filter": ("models.linear_filter", "LinearFilter"),
     }
@@ -128,10 +130,19 @@ def get_model_class(name: str) -> type[torch.nn.Module]:
     return load_known_model(key, name)
 
 
-def build_model(model_cfg: dict[str, Any]) -> torch.nn.Module:
+def build_model(
+    model_cfg: dict[str, Any],
+    stats: dict[str, Any] | None = None,
+    stride: int | None = None,
+) -> torch.nn.Module:
     """Instantiate a model from its model configuration dict."""
     cls = get_model_class(model_cfg["name"])
     kwargs = {k: v for k, v in model_cfg.items() if k != "name"}
+    sig = inspect.signature(cls.__init__)
+    if "stats" in sig.parameters and stats is not None and "stats" not in kwargs:
+        kwargs["stats"] = stats
+    if "stride" in sig.parameters and stride is not None and "stride" not in kwargs:
+        kwargs["stride"] = stride
     return cls(**kwargs)
 
 
@@ -608,7 +619,8 @@ def train(cfg: dict[str, Any], name: str, ckpt: dict[str, Any] | None = None) ->
         raise SystemExit("training.device is 'cuda' but torch.cuda.is_available() is False. Set training.device: cpu")
 
     files = init_run_files(name)
-    model = build_model(cfg["model"])
+    init_stats = load_stats(stride)
+    model = build_model(cfg["model"], stats=init_stats, stride=stride)
     target = getattr(model, "target", cfg["model"].get("target", "dT"))
     train_set, val_runs, stats, bins, mean, std = setup_data_and_stats(
         stride, target, t["noise"], t["augment"], ckpt
