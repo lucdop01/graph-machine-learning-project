@@ -26,6 +26,8 @@ Usage (from the repo root):
   python -m analysis.plateau --dh --checkpoint checkpoints/<name>/best.pt [more checkpoints]
 """
 import argparse
+import itertools
+from typing import Any
 
 import numpy as np
 
@@ -47,7 +49,7 @@ def plateau_counts(T_prev, T):
 
 
 def evaluate(runs, predictor, stride):
-    tot = dict(dwell_pred=0, dwell_true=0, hit=0, jumps_pred=0, jumps_true=0, runs=0)
+    tot = {"dwell_pred": 0, "dwell_true": 0, "hit": 0, "jumps_pred": 0, "jumps_true": 0, "runs": 0}
     for run in runs:
         if not run.melts:
             continue
@@ -59,9 +61,9 @@ def evaluate(runs, predictor, stride):
         T0 = run.T(0)
         in_p, j_p = plateau_counts(T0, r["T"])
         in_t, j_t = plateau_counts(T0, truth)
-        tot["dwell_pred"] += int(in_p.sum())
-        tot["dwell_true"] += int(in_t.sum())
-        tot["hit"] += int((in_p & in_t).sum())
+        tot["dwell_pred"] += int(np.sum(in_p))
+        tot["dwell_true"] += int(np.sum(in_t))
+        tot["hit"] += int(np.sum(in_p & in_t))
         tot["jumps_pred"] += j_p
         tot["jumps_true"] += j_t
         tot["runs"] += 1
@@ -101,7 +103,7 @@ def dh_pairs(runs, predictor, stride):
 def report_dh(name, true, pred, phase):
     print(f"{name}: {len(true)} active node-steps (|dH| >= {DH_ACTIVE / 1e3:g} kJ/kg)")
     print(f"  {'group':>18s} {'count':>9s} {'true kJ/kg':>11s} {'pred kJ/kg':>11s} {'ratio':>7s} {'MAE kJ/kg':>10s}")
-    rows = [(f"dH {lo / 1e3:g} to {hi / 1e3:g}", (true >= lo) & (true < hi)) for lo, hi in zip(DH_BINS, DH_BINS[1:])]
+    rows = [(f"dH {lo / 1e3:g} to {hi / 1e3:g}", (true >= lo) & (true < hi)) for lo, hi in itertools.pairwise(DH_BINS)]
     rows += [(f"start {p}", phase == i) for i, p in enumerate(PHASES)]
     rows.append(("all", np.ones_like(true, dtype=bool)))
     for label, m in rows:
@@ -122,12 +124,12 @@ def main():
     ap.add_argument("--split", default="val")
     ap.add_argument("--stride", type=int, default=5)
     ap.add_argument("--mesh-seed", type=int, default=0)
-    ap.add_argument("--device", default="cuda")
+    ap.add_argument("--device", default="cpu")
     a = ap.parse_args()
     if not a.checkpoint and not a.predictor:
         ap.error("give --checkpoint or --predictor")
     runs = load_runs(a.split, a.mesh_seed)
-    predictors = [(make_predictor(a.predictor), a.stride)] if a.predictor else []
+    predictors: list[tuple[Any, int]] = [(make_predictor(a.predictor), a.stride)] if a.predictor else []
     for path in a.checkpoint:
         predictor, stride, _ = checkpoint_predictor(path, a.device, a.stride)
         predictors.append((predictor, stride))
