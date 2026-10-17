@@ -15,15 +15,14 @@ moving over a thin Ti-6Al-4V plate, with melting.
 | Data generator (`data/generate.py`) | Done, cools every run until fully solid; full run checked on every split |
 | Graph preprocessing (`graphs/`) | Done: meshes, node data, PyTorch Geometric dataset; energy check passes (check 7) |
 | Rollout and evaluation harness (`evaluation/`) | Done: rollouts, metrics, selection score, reference predictors; the solver's own frames score zero (check 8) |
-| U-Net grid, Laplacian, partitions, models, training, analysis | To do (`graphs/`, `models/`, `analysis/` list the planned modules) |
+| U-Net baseline | Trained and evaluated; [final report](results/unet_final/report.md), selected checkpoint `checkpoints/unet_early_stop_retry_group_s5_seed0.pt` |
+| Other models | LF-T is on `laplacian-filter-baseline`; other graph models are outside this branch |
 
 ## Setup
 
 ```bash
-python -m venv .venv && source .venv/bin/activate
-pip install numpy scipy h5py pyyaml matplotlib jupyter     # enough for the solver, data and graph preprocessing
-# for the models: install torch for your CUDA version (https://pytorch.org), then
-pip install torch_geometric
+python3 -m venv .venv && source .venv/bin/activate
+python3 -m pip install -r requirements.txt
 ```
 
 ## Quick start
@@ -40,6 +39,10 @@ python -m graphs.preprocess                  # every run onto its mesh, data/gra
 python -m graphs.preprocess --splits test_interp --mesh-seed 1   # the new-mesh test
 python -m verify.graph_energy --dataset      # graph energy check over every run in data/splits.json
 python -m graphs.dataset --stride 5          # train normalisation statistics, sample counts per split
+python -m verify.grid_adapter                # synthetic mesh/grid round-trip checks
+python -m verify.unet                        # U-Net shape, padding and gradient checks
+python -m verify.unet_pipeline               # one-example overfit, closed-loop and shared-evaluation checks
+python -m verify.unet_norm                   # normalization and plate-size checks
 python -m graphs.figures                     # mesh and interpolation figures in results/figures/
 python -m verify.harness                     # check 8: the harness scores the solver's own frames, under a minute
 python -m evaluation.rollout --size-bins     # melt-pool size bins from the train split (once)
@@ -48,6 +51,27 @@ python -m evaluation.rollout --split val --stride 5 --predictor oracle   # rollo
 
 Generated runs go to `data/runs/` (git-ignored) and the index to `data/splits.json` (commit this one).
 The data is fully determined by the seeds in `generate.py`; host a copy of `data/runs/` outside GitHub and link it here.
+
+## Final U-Net baseline
+
+The frozen model uses a 5 µm grid, GroupNorm, stride 5 and a residual temperature update on the original mesh nodes.
+It was trained on all 150 train runs and selected at epoch 11 using only the 20 validation rollouts. The
+[canonical report](results/unet_final/report.md) contains validation and held-out results, checkpoint index,
+training curves, limitations and exact reproduction commands. `results/unet_final/` holds one CSV and JSON per
+held-out split; `results/unet_early_stop_retry/` keeps the selected run's complete training history and plots.
+Historical U-Net pilot and three-epoch data are archived under `results/archive/`. All five documented U-Net
+checkpoints are included in Git at their original paths.
+
+To evaluate the frozen checkpoint on a prepared split (the unseen mesh test requires the seed-1 preprocessing
+command in Quick start):
+
+```bash
+python3 -m models.evaluate_unet --checkpoint checkpoints/unet_early_stop_retry_group_s5_seed0.pt --split test_interp --device mps --out results/unet_reproduction_eval
+python3 -m models.evaluate_unet --checkpoint checkpoints/unet_early_stop_retry_group_s5_seed0.pt --split test_interp --mesh-seed 1 --device mps --out results/unet_reproduction_eval
+```
+
+Use `--device cuda` or `--device cpu` where appropriate. The training command and all six final evaluation commands
+are in the report; using new output paths preserves the archived results.
 
 ## Solver
 
@@ -141,6 +165,13 @@ and spread of the targets dT and dH and a fingerprint of the training data. A da
 other training data, another interpolation, another stride or another frame interval (week1 frames are twice as
 long, so it needs its own statistics). Statistics are never recomputed silently, because a trained model must keep the
 statistics it was trained with; `python -m graphs.dataset --stride <s> --recompute` rebuilds them.
+
+**U-Net pipeline** (`models/unet.py`, `models/unet_pipeline.py`, `graphs/grid.py`). The selected 488,705-parameter
+encoder-decoder maps rasterized current T, current melted fraction and exactly five frames of laser energy to
+normalized ΔT. The loss samples ΔT back at the original mesh nodes; rollout denormalizes it and adds it to the
+original node T. Architecture depth and widths remain configurable. `models/train_unet_early_stop.py` trains and
+selects by validation rollout nRMSE; `models/evaluate_unet.py` computes one-step and shared closed-loop metrics.
+The [final report](results/unet_final/report.md) records the configuration and the observed transfer failures.
 
 **Energy check** (`verify/graph_energy.py`, check 7). For every frame it compares the mesh energy with the solver
 energy. The difference is reported (a) relative to the laser input so far, from the frame where 5% of the run's input
@@ -340,11 +371,10 @@ solver/      ti64.py (material table), paths.py (laser paths), solver.py, events
 verify/      energy_balance.py, rosenthal.py, stefan.py, convergence.py, cooling.py, solidification.py,
              graph_energy.py, harness.py, run_all.py
 data/        generate.py, splits.json, meshes/ (commit), runs/ and graphs/ (git-ignored)
-graphs/      mesh.py, preprocess.py, dataset.py, figures.py; planned: grid, laplacian, partition
+graphs/      mesh.py, preprocess.py, dataset.py, grid.py, figures.py
 evaluation/  metrics.py, rollout.py (rollouts, evaluation, reference predictors, command line), torch_predictor.py
-models/      planned: linear filters, U-Net, GCN, MeshGraphNet backbone, models A-D
-analysis/    planned: probes, attribution, spectra
-configs/     one yaml per model and ablation
-notebooks/   project.ipynb (course requirement)
-results/     eval/ (rollout metrics), figures/ (git-ignored)
+models/      U-Net architecture and pipeline, training, evaluation, normalization pilot, history plots
+results/     unet_final/ (canonical report and held-out metrics), unet_early_stop_retry/ (selected training run),
+             archive/ (historical U-Net experiments), eval/ (shared evaluator outputs)
+checkpoints/ five versioned U-Net checkpoints; future experiment outputs are git-ignored
 ```

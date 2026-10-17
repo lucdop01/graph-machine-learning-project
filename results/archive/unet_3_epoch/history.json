@@ -1,0 +1,53 @@
+{
+  "config": {
+    "epochs": 3,
+    "seed": 0,
+    "batch_size": 4,
+    "lr": 0.001,
+    "min_lr": 0.0001,
+    "depth": 3,
+    "base_channels": 16,
+    "channels": null,
+    "grid_dx_um": 5.0,
+    "norm": "group",
+    "device": "mps",
+    "checkpoint": "checkpoints/unet_full_group_s5_seed0.pt",
+    "out_dir": "results/unet_full",
+    "preload": false
+  },
+  "train_runs": 150,
+  "train_samples": 18253,
+  "val_runs": 20,
+  "train_fingerprint": "a134269f75ce9513",
+  "device": "mps",
+  "history": [
+    {
+      "epoch": 1,
+      "step": 4564,
+      "train_loss": 0.0060924869066876575,
+      "val_rollout_nrmse": 0.0445792242732808,
+      "lr_end": 0.0007749999999999448,
+      "elapsed_s": 552.3649025420309,
+      "checkpoint_saved": true
+    },
+    {
+      "epoch": 2,
+      "step": 9128,
+      "train_loss": 0.0012347135497367387,
+      "val_rollout_nrmse": 0.02047854557090935,
+      "lr_end": 0.0003249999999999983,
+      "elapsed_s": 651.2471178750275,
+      "checkpoint_saved": true
+    },
+    {
+      "epoch": 3,
+      "step": 13692,
+      "train_loss": 0.0005049558223964576,
+      "val_rollout_nrmse": 0.013668710313175314,
+      "lr_end": 0.0001,
+      "elapsed_s": 934.3526027919725,
+      "checkpoint_saved": true
+    }
+  ],
+  "total_elapsed_s": 2137.970477416995
+}

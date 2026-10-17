@@ -1,0 +1,122 @@
+{
+ "predictor": "cross",
+ "split": "test_fine",
+ "mesh": [
+  "straight seed 0"
+ ],
+ "stride": 5,
+ "step_us": 66.69588270958498,
+ "runs": 30,
+ "nrmse_mean": 0.005073003805287521,
+ "nrmse_median": 0.0048570674503847465,
+ "nrmse_max": 0.00671453270186822,
+ "melt_mae": 4.61028844147218,
+ "melt_points": 28676,
+ "iou": {
+  "runs": 30,
+  "iou": 0.9757642510048677,
+  "iou_soft": 0.9758058055922392,
+  "runs_with_union": 15
+ },
+ "iou_by_bin": {
+  "small": {
+   "runs": 4,
+   "iou": 0.861841145478884,
+   "iou_soft": 0.8987591313413632,
+   "runs_with_union": 4
+  },
+  "medium": {
+   "runs": 5,
+   "iou": 0.9442066127162425,
+   "iou_soft": 0.9450435782263117,
+   "runs_with_union": 5
+  },
+  "large": {
+   "runs": 6,
+   "iou": 0.9857355227746838,
+   "iou_soft": 0.984519567753319,
+   "runs_with_union": 6
+  },
+  "none": {
+   "runs": 15,
+   "iou": null,
+   "iou_soft": 0.6782506150192067,
+   "runs_with_predicted_pool": 0
+  }
+ },
+ "solidification": {
+  "med": 0.02140563176940836,
+  "med_abs": 0.03839446753923423,
+  "melted_ref": 7565,
+  "melted": 7650,
+  "compared": 7490,
+  "missed": 29,
+  "spurious": 114,
+  "unfinished_ref": 46,
+  "unfinished": 44
+ },
+ "cadence": {
+  "med": -0.08434602495853556,
+  "med_abs": 0.0981560917404888,
+  "melted_ref": 8146,
+  "melted": 7565,
+  "compared": 7519,
+  "missed": 581,
+  "spurious": 0,
+  "unfinished_ref": 0,
+  "unfinished": 46
+ },
+ "gap_10_vs_5um": {
+  "med": 0.02140563176940836,
+  "med_abs": 0.03839446753923423,
+  "melted_ref": 7565,
+  "melted": 7650,
+  "compared": 7490,
+  "missed": 29,
+  "spurious": 114,
+  "unfinished_ref": 46,
+  "unfinished": 44
+ },
+ "energy": {
+  "a": {
+   "median": 0.0016473028991527004,
+   "max": 0.004847832225582049
+  },
+  "b": {
+   "median": 0.0005676538563417855,
+   "max": 0.0011675427905187372
+  },
+  "end": {
+   "median": 4.280313911115175e-05,
+   "max": 0.0006719573481060727
+  }
+ },
+ "budget": {
+  "a": {
+   "median": 0.00260328446473151,
+   "max": 0.006499565389691029
+  },
+  "b": {
+   "median": 0.0022374568253542386,
+   "max": 0.003235743140356196
+  },
+  "end": {
+   "median": 0.0022374568253542386,
+   "max": 0.003235743140356196
+  }
+ },
+ "wall_s": 0.0018313750042580068,
+ "steps": 768,
+ "size_bins": {
+  "edges_m2": [
+   1.9754550633443152e-09,
+   5.842003519340709e-09
+  ],
+  "source": "train split, mesh seed 0",
+  "runs": 150,
+  "runs_with_pool": 74,
+  "definition": "terciles of the peak melt-pool area (melted fraction above 0.5, node areas, every saved frame) over the runs with a pool; small <= edge 1 < medium <= edge 2 < large; none = no pool",
+  "train_fingerprint": "a134269f75ce9513"
+ },
+ "mesh_seed": 0
+}

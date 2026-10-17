@@ -224,7 +224,13 @@ __marimo__/
 data/runs/
 data/graphs/
 *.h5
-checkpoints/
+# Keep the five documented U-Net checkpoints; ignore future experimental outputs.
+checkpoints/*
+!checkpoints/unet_norm_pilot_group_s5_seed0.pt
+!checkpoints/unet_norm_pilot_pixelwise_layer_s5_seed0.pt
+!checkpoints/unet_full_group_s5_seed0.pt
+!checkpoints/unet_early_stop_group_s5_seed0.pt
+!checkpoints/unet_early_stop_retry_group_s5_seed0.pt
 results/figures/
 wandb/
 # macOS

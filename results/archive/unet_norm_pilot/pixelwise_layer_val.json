@@ -1,0 +1,104 @@
+{
+ "predictor": "unet",
+ "split": "val",
+ "mesh": [
+  "straight seed 0"
+ ],
+ "stride": 5,
+ "step_us": 66.69588270958498,
+ "runs": 20,
+ "nrmse_mean": 0.5156515804696832,
+ "nrmse_median": 0.5159455584591104,
+ "nrmse_max": 0.5734742129419252,
+ "melt_mae": 837.0162012100075,
+ "melt_points": 19889,
+ "iou": {
+  "runs": 20,
+  "iou": 0.0,
+  "iou_soft": 0.0,
+  "runs_with_union": 11
+ },
+ "iou_by_bin": {
+  "medium": {
+   "runs": 7,
+   "iou": 0.0,
+   "iou_soft": 0.0,
+   "runs_with_union": 7
+  },
+  "large": {
+   "runs": 4,
+   "iou": 0.0,
+   "iou_soft": 0.0,
+   "runs_with_union": 4
+  },
+  "none": {
+   "runs": 9,
+   "iou": null,
+   "iou_soft": 0.0,
+   "runs_with_predicted_pool": 0
+  }
+ },
+ "solidification": {
+  "med": null,
+  "med_abs": null,
+  "melted_ref": 5933,
+  "melted": 0,
+  "compared": 0,
+  "missed": 5933,
+  "spurious": 0,
+  "unfinished_ref": 22,
+  "unfinished": 0
+ },
+ "cadence": {
+  "med": -0.08245194843455747,
+  "med_abs": 0.14645785944137435,
+  "melted_ref": 6500,
+  "melted": 5933,
+  "compared": 5911,
+  "missed": 567,
+  "spurious": 0,
+  "unfinished_ref": 0,
+  "unfinished": 22
+ },
+ "energy": {
+  "a": {
+   "median": 1.6978093646209453,
+   "max": 4.334421255961152
+  },
+  "b": {
+   "median": 1.2167416490328087,
+   "max": 4.109334473316224
+  },
+  "end": {
+   "median": 1.0658246742116724,
+   "max": 4.109334473316224
+  }
+ },
+ "budget": {
+  "a": {
+   "median": 1.6990340962271808,
+   "max": 4.3352747503182885
+  },
+  "b": {
+   "median": 1.2171901623755343,
+   "max": 4.110739276110722
+  },
+  "end": {
+   "median": 1.0678055488777072,
+   "max": 4.110739276110722
+  }
+ },
+ "wall_s": 7.432995914539788,
+ "steps": 547,
+ "size_bins": {
+  "edges_m2": [
+   1.9754550633443152e-09,
+   5.842003519340709e-09
+  ],
+  "source": "train split, mesh seed 0",
+  "runs": 150,
+  "runs_with_pool": 74,
+  "definition": "terciles of the peak melt-pool area (melted fraction above 0.5, node areas, every saved frame) over the runs with a pool; small <= edge 1 < medium <= edge 2 < large; none = no pool",
+  "train_fingerprint": "a134269f75ce9513"
+ }
+}
