@@ -20,10 +20,16 @@ phase at the start of the step (solid, melting range, liquid). Per group: count,
 of their sums (below 1: too little heating) and the mean absolute error. Only steps that change H by at least 1 kJ/kg
 in truth or prediction are counted, so the cold plate does not dilute the groups. The oracle gives ratio 1 and error 0.
 
+--crossings: the one-step steps (again from the true temperature) in which the truth crosses the whole melting range,
+from below the solidus to above the liquidus (melting) or back (solidifying). For each direction, where the
+prediction ends: across the range as well, inside it, or short of it (still on the starting side). A model that
+lands inside instead of across adds plateau frames that the truth does not have. The oracle crosses every time.
+
 Usage (from the repo root):
   python -m analysis.plateau --checkpoint checkpoints/<name>/best.pt [more checkpoints] [--split val]
   python -m analysis.plateau --predictor oracle
   python -m analysis.plateau --dh --checkpoint checkpoints/<name>/best.pt [more checkpoints]
+  python -m analysis.plateau --crossings --checkpoint checkpoints/<name>/best.pt [more checkpoints]
 """
 import argparse
 import itertools
@@ -100,6 +106,38 @@ def dh_pairs(runs, predictor, stride):
     return np.concatenate(true), np.concatenate(pred), np.concatenate(phase)
 
 
+def crossing_counts(runs, predictor, stride):
+    """Per direction ("melting", "solidifying"): how many true one-step crossings the prediction crosses as well,
+    ends inside the range, or ends short of it."""
+    out = {d: {"across": 0, "inside": 0, "short": 0} for d in ("melting", "solidifying")}
+    for run in runs:
+        if not run.melts:
+            continue
+        if hasattr(predictor, "reset"):
+            predictor.reset(run)
+        for k in run.starts(stride):
+            T, T_next = run.T(k), run.T(k + stride)
+            up = (T < T_S) & (T_next > T_L)
+            down = (T > T_L) & (T_next < T_S)
+            if not (up.any() or down.any()):
+                continue
+            P = np.asarray(predictor.step(run, T, k, stride), dtype=np.float64)
+            inside = (P >= T_S) & (P <= T_L)
+            for d, m, across in (("melting", up, P > T_L), ("solidifying", down, P < T_S)):
+                out[d]["across"] += int((m & across).sum())
+                out[d]["inside"] += int((m & inside).sum())
+                out[d]["short"] += int((m & ~across & ~inside).sum())
+    return out
+
+
+def report_crossings(name, out):
+    parts = []
+    for d, c in out.items():
+        n = sum(c.values())
+        parts.append(f"{d} {n}: " + ", ".join(f"{k} {v / n:.3f}" for k, v in c.items()) if n else f"{d}: none")
+    print(f"{name}: true one-step crossings; " + "; ".join(parts))
+
+
 def report_dh(name, true, pred, phase):
     print(f"{name}: {len(true)} active node-steps (|dH| >= {DH_ACTIVE / 1e3:g} kJ/kg)")
     print(f"  {'group':>18s} {'count':>9s} {'true kJ/kg':>11s} {'pred kJ/kg':>11s} {'ratio':>7s} {'MAE kJ/kg':>10s}")
@@ -121,6 +159,7 @@ def main():
     ap.add_argument("--checkpoint", nargs="+", default=[])
     ap.add_argument("--predictor", choices=("oracle",))
     ap.add_argument("--dh", action="store_true", help="one-step dH bias instead of the rollout plateau")
+    ap.add_argument("--crossings", action="store_true", help="where the prediction ends on true one-step crossings")
     ap.add_argument("--split", default="val")
     ap.add_argument("--stride", type=int, default=5)
     ap.add_argument("--mesh-seed", type=int, default=0)
@@ -134,7 +173,9 @@ def main():
         predictor, stride, _ = checkpoint_predictor(path, a.device, a.stride)
         predictors.append((predictor, stride))
     for predictor, stride in predictors:
-        if a.dh:
+        if a.crossings:
+            report_crossings(predictor.name, crossing_counts(runs, predictor, stride))
+        elif a.dh:
             report_dh(predictor.name, *dh_pairs(runs, predictor, stride))
         else:
             report(predictor.name, evaluate(runs, predictor, stride))
