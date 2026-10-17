@@ -15,7 +15,7 @@ moving over a thin Ti-6Al-4V plate, with melting.
 | Data generator (`data/generate.py`) | Done, cools every run until fully solid; full run checked on every split |
 | Graph preprocessing (`graphs/`) | Done: meshes, node data, PyTorch Geometric dataset; energy check passes (check 7) |
 | Rollout and evaluation harness (`evaluation/`) | Done: rollouts, metrics, selection score, reference predictors; the solver's own frames score zero (check 8) |
-| Laplacian and LF-T baseline | Done: unconstrained and stable fits compared on val one-step and rollout |
+| Laplacian and LF-T baseline | Done: constrained Ridge order comparison, selected K=5 predictor and val rollout for the B gate |
 | U-Net grid, partitions, other models, training, analysis | To do (`graphs/`, `models/`, `analysis/` list the planned modules) |
 
 ## Setup
@@ -42,15 +42,12 @@ python -m graphs.preprocess --splits test_interp --mesh-seed 1   # the new-mesh 
 python -m verify.graph_energy --dataset      # graph energy check over every run in data/splits.json
 python -m graphs.dataset --stride 5          # train normalisation statistics, sample counts per split
 python -m verify.laplacian                   # physical Laplacian checks on every committed mesh
-python -m verify.linear_filter               # LF-T basis and synthetic fit checks
-python -m models.linear_filter --order 3      # fit LF-T on train only; checkpoint in checkpoints/
-python -m models.linear_filter_experiment --orders 1 3 5 --stride 5  # reproducible train/val one-step comparison
+python -m verify.linear_filter               # LF-T basis, fit and predictor checks
+python -m models.linear_filter_experiment    # train K=1/3/5/10, compare val rollouts, export selected K=5
 python -m graphs.figures                     # mesh and interpolation figures in results/figures/
 python -m verify.harness                     # check 8: the harness scores the solver's own frames, under a minute
 python -m evaluation.rollout --size-bins     # melt-pool size bins from the train split (once)
-python -m models.linear_filter_rollout --split val --stride 5 --orders 1 3 5  # rollout comparison
-python -m models.linear_filter_experiment --orders 1 3 5 --stride 5 --stable  # constrained fit comparison
-python -m models.linear_filter_rollout --split val --stride 5 --orders 1 3 5 --stable  # constrained rollout
+python -m models.linear_filter_rollout --split val  # selected LF-T: results/eval/lf_t_val_s5.csv/.json
 python -m evaluation.rollout --split val --stride 5 --predictor oracle   # rollout metrics in results/eval/
 ```
 
@@ -184,31 +181,27 @@ All 355 checks pass. "Laser per step" is the larger of the 5-frame and 2-frame v
 
 ## Linear graph filter baseline (LF-T)
 
-`graphs/laplacian.py` builds the area-lumped cotangent diffusion operator L from the triangles. For each mesh,
-`models/linear_filter.py` scales L by an upper bound on its spectral radius and builds Chebyshev features
-F_k(T) = (Chebyshev_k(I + 2 L / radius) - I) T. Removing the constant response makes every F_k zero on a uniform
-temperature field. The filter fits T_next = T + sum_{k=1}^K a_k F_k(T) + b E, where E is the laser energy per volume
-over the model step. This is a polynomial in L, equivalent to the planned sum of Laplacian powers but numerically
-scaled. There is no intercept. The fit uses ordinary least squares on **train only** and saves its coefficients,
-training-data fingerprint and one-step diagnostics in `checkpoints/` (git-ignored). `--order` selects K; validation
-rollouts, rather than training error, are used to choose it.
-`models/linear_filter_experiment.py` compares requested orders with the same train and val runs and writes
-`results/linear_filter_orders_s5.csv`. Its val scores use the true temperature at the start of each step; they
-measure one-step generalisation, not error accumulation in a rollout. The CSV includes the training-data fingerprint,
-fit time, overall RMSE and mean absolute error where the true next temperature is 1,800-2,000 K. Checkpoints are
-saved separately by order so the later rollout can use exactly the fitted coefficients.
+`graphs/laplacian.py` assembles the cotangent Laplacian from triangles using lumped node areas. LF-T scales it by a
+spectral bound and fits the polynomial `T_next = T + Σ a_k (Chebyshev_k(B) - I) T + b E`, where `E` is laser energy
+per node volume over one model step. This is a numerically scaled polynomial in the Laplacian. Each order combines
+nodes at graph distances up to that order; a coefficient is not the weight of one neighbor. Removing the constant
+response gives a stationary uniform field without laser input.
 
-`models/linear_filter_rollout.py` uses the shared evaluation harness with each model's own predictions. It writes
-per-run metrics to `results/eval/` and an order comparison to `results/linear_filter_rollout_val_s5.csv`.
-The ordinary least-squares fit gave good one-step errors, but all three orders ran away in validation rollouts:
-fine mesh modes grow when predictions are fed back into the model. These results are retained as the original
-baseline, including the failed long-horizon behavior.
+`models/linear_filter.py` fits on **train only** with constrained Ridge least squares. Effective diffusion
+coefficients are nonnegative and sum to at most one; the laser coefficient is nonnegative and is not penalized.
+The Ridge strength is `1e-4` relative to the mean train temperature-feature power. The constraint bounds the
+free-diffusion spectral gain; it does not enforce heat conservation or a positive spatial kernel.
 
-`--stable` fits the same data with nonnegative diffusion coefficients whose sum is at most one. Since each
-Chebyshev operator has eigenvalues in [-1, 1], their convex combination cannot amplify a free-diffusion mode.
-The stable fit uses separate `_stable` checkpoints and reports, so the original results remain reproducible.
-The validation comparison is in `results/linear_filter_rollout_stable_val_s5.csv`. Among K=1, 3 and 5, K=5
-has the best validation rollout score; the constrained baseline still has substantial melt-range and energy error.
+`python -m models.linear_filter_experiment` fits K=1, 3, 5 and 10, scores each on all 20 `val` runs at stride 5,
+and writes `results/lf_t_order_comparison_val_s5.csv` with one-step errors, rollout metrics and coefficients.
+Selection uses the mean **val rollout nRMSE**, yielding K=5. Its small, train-fitted checkpoint is
+`models/artifacts/lf_t_s5_k5.json`; no test split is used for fitting or selection.
+
+`models.linear_filter.load_predictor()` returns the selected predictor with `step(run, T, k, stride)`. For Lei's
+B gate, run `python -m models.linear_filter_rollout --split val`. It uses the shared harness and writes per-run
+metrics to `results/eval/lf_t_val_s5.csv` and the split summary to `results/eval/lf_t_val_s5.json`. The selected
+model reaches nRMSE 0.3403, melting-range MAE 146 K and melt-pool IoU 0.662 on val. Its final energy remains
+about 40% of the laser input below the reference, so the metric report should accompany the checkpoint.
 
 ## Evaluation
 

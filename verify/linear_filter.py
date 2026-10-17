@@ -1,4 +1,4 @@
-"""Check LF-T basis invariants and recover known coefficients from a synthetic run.
+"""Check LF-T basis, constrained Ridge fit, and synthetic rollout.
 
 Usage: python -m verify.linear_filter
 """
@@ -40,7 +40,7 @@ def main():
     np.testing.assert_allclose(basis.features(np.full(mesh.n_nodes, 300)), 0, atol=1e-11)
     np.testing.assert_allclose(basis.features(T + 80), basis.features(T), rtol=0, atol=1e-10)
 
-    weights = np.array([0.06, -0.02, 0.01, 0.4])
+    weights = np.array([0.06, 0.02, 0.01, 0.4])
     frames = [T]
     laser = []
     for _ in range(8):
@@ -52,15 +52,14 @@ def main():
     stats = dict(stride=1, frame_us=run.frame_us, interp=["T"],
                  train_fingerprint=train_fingerprint({run.name: run.attrs}),
                  node=dict(T=dict(std=1), E=dict(std=1)), target=dict(dT=dict(std=1)))
-    fitted = fit_filter([run], stats, stride=1, order=3)
-    np.testing.assert_allclose(fitted["weights"], weights, rtol=0, atol=1e-8)
+    fitted = fit_filter([run], stats, stride=1, order=3, ridge_relative=1e-8)
+    np.testing.assert_allclose(fitted["weights"], weights, rtol=0, atol=1e-4)
     np.testing.assert_allclose(predict_next(basis, frames[0], laser[0], fitted), frames[1],
-                               rtol=0, atol=1e-8)
+                               rtol=0, atol=1e-4)
     predictor = LinearFilterPredictor(fitted, stats)
     simulated = rollout(run, predictor, stride=1)
-    np.testing.assert_allclose(simulated["T"], run._T[1:], rtol=0, atol=1e-7)
-    stable = fit_filter([run], stats, stride=1, order=3, stable=True)
-    diffusion = np.asarray(stable["weights"][:-1]) * stable["scales"]["dT"] / stable["scales"]["T"]
+    np.testing.assert_allclose(simulated["T"], run._T[1:], rtol=0, atol=1e-3)
+    diffusion = np.asarray(fitted["weights"][:-1]) * fitted["scales"]["dT"] / fitted["scales"]["T"]
     if np.min(diffusion) < -1e-8 or diffusion.sum() > 1 + 1e-8:
         raise AssertionError("stable fit violates its diffusion coefficient constraints")
     x = np.linspace(-1, 1, 1001)
@@ -68,9 +67,11 @@ def main():
                                    for k, a in enumerate(diffusion, 1))
     if np.max(np.abs(gain)) > 1 + 1e-8:
         raise AssertionError("stable fit amplifies a Laplacian eigenmode")
-    if fitted["one_step_rmse_K"] > 1e-5:
-        raise AssertionError("synthetic one-step fit did not recover the exact transitions")
-    print("LF-T: constant field, coefficient recovery, synthetic rollout, and spectral stability pass")
+    if not fitted["penalized_gram_condition"] < fitted["gram_condition"]:
+        raise AssertionError("Ridge did not improve the design conditioning")
+    if fitted["one_step_rmse_K"] > 1e-3:
+        raise AssertionError("synthetic one-step fit did not recover the transitions")
+    print("LF-T: constant field, constrained Ridge fit, synthetic rollout, and spectral stability pass")
 
 
 if __name__ == "__main__":

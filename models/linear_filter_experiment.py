@@ -1,16 +1,10 @@
-"""Reproduce the LF-T order comparison on the fixed train/val split.
+"""Fit LF-T orders 1/3/5/10 on train and select K=5 by val rollout.
 
-Run from the repository root:
-  python -m models.linear_filter_experiment --orders 1 3 5 --stride 5 --stable
-
-Each order is fitted independently on all train steps, then scored one step at
-a time on val with the true current temperature. This is not a rollout. The
-checkpoint for each order goes to checkpoints/ and the CSV goes to results/.
-Omit --stable to reproduce the original unconstrained ordinary least-squares
-fits, whose one-step scores were good but rollouts diverged.
+Run from the repository root: python -m models.linear_filter_experiment
+Writes one comparison CSV and the selected, small checkpoint for the B gate.
+No test split is read by this module.
 """
 
-import argparse
 import csv
 import json
 import os
@@ -18,8 +12,15 @@ import time
 
 import numpy as np
 
+from evaluation.rollout import evaluate_split, load_size_bins
 from graphs.dataset import check_stats, load_runs, load_stats
-from models.linear_filter import FilterBasis, fit_filter, predict_next
+from models.linear_filter import (DEFAULT_RIDGE, SELECTED_CHECKPOINT, FilterBasis,
+                                  LinearFilterPredictor, fit_filter, predict_next)
+
+ORDERS = (1, 3, 5, 10)
+SELECTED_ORDER = 5
+STRIDE = 5
+REPORT = "results/lf_t_order_comparison_val_s5.csv"
 
 
 def score_one_step(runs, fit):
@@ -56,59 +57,60 @@ def score_one_step(runs, fit):
 
 
 def main():
-    parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--stride", type=int, default=5)
-    parser.add_argument("--orders", nargs="+", type=int, default=[1, 3, 5])
-    parser.add_argument("--stable", action="store_true", help="fit with a spectral stability constraint")
-    parser.add_argument("--report", help="CSV path; defaults to results/linear_filter_orders_s<S>.csv")
-    parser.add_argument("--checkpoint-dir", default="checkpoints")
-    args = parser.parse_args()
-    if not args.orders or len(set(args.orders)) != len(args.orders) or any(k < 1 for k in args.orders):
-        parser.error("--orders needs distinct positive integers")
-    label = "_stable" if args.stable else ""
-    report = args.report or f"results/linear_filter_orders{label}_s{args.stride}.csv"
-
-    stats = load_stats(args.stride)
+    stats = load_stats(STRIDE)
     train = load_runs("train", preload=False)
     val = load_runs("val", preload=False)
-    check_stats(stats, args.stride, val, "linear-filter val runs")
-    os.makedirs(args.checkpoint_dir, exist_ok=True)
-    os.makedirs(os.path.dirname(os.path.abspath(report)), exist_ok=True)
-    rows = []
-    for order in args.orders:
+    check_stats(stats, STRIDE, val, "linear-filter val runs")
+    bins = load_size_bins()
+    comparison, fits = [], {}
+    for order in ORDERS:
         start = time.perf_counter()
-        fit = fit_filter(train, stats, args.stride, order, stable=args.stable)
+        fit = fit_filter(train, stats, STRIDE, order, ridge_relative=DEFAULT_RIDGE)
         fit_seconds = time.perf_counter() - start
-        checkpoint = os.path.join(args.checkpoint_dir, f"linear_filter{label}_s{args.stride}_k{order}.json")
-        with open(checkpoint + ".tmp", "w") as file:
-            json.dump(fit, file, indent=2)
-        os.replace(checkpoint + ".tmp", checkpoint)
-        start = time.perf_counter()
-        val_score = score_one_step(val, fit)
-        val_seconds = time.perf_counter() - start
-        row = dict(stride=args.stride, order=order, constraint=fit["constraint"], train_runs=fit["runs"],
-                   train_node_steps=fit["nodes_steps"], val_runs=len(val),
-                   val_node_steps=val_score["node_steps"], melt_node_steps=val_score["melt_node_steps"],
-                   train_rmse_K=fit["one_step_rmse_K"],
-                   train_persistence_rmse_K=fit["persistence_rmse_K"],
-                   val_rmse_K=val_score["rmse_K"],
-                   val_persistence_rmse_K=val_score["persistence_rmse_K"],
-                   val_melt_mae_K=val_score["melt_mae_K"],
-                   val_persistence_melt_mae_K=val_score["persistence_melt_mae_K"],
-                   gram_condition=fit["gram_condition"], fit_seconds=fit_seconds,
-                   val_seconds=val_seconds, train_fingerprint=fit["train_fingerprint"],
-                   checkpoint=checkpoint)
-        rows.append(row)
-        print(f"K={order}: train RMSE {row['train_rmse_K']:.2f} K, val RMSE {row['val_rmse_K']:.2f} K, "
-              f"val melt MAE {row['val_melt_mae_K']:.2f} K, fit {fit_seconds:.1f} s, "
-              f"val {val_seconds:.1f} s, condition {row['gram_condition']:.2g}", flush=True)
+        one_step = score_one_step(val, fit)
+        _, rollout = evaluate_split(val, LinearFilterPredictor(fit, stats), STRIDE, bins)
+        alpha = np.asarray(fit["weights"][:-1]) * fit["scales"]["dT"] / fit["scales"]["T"]
+        row = dict(stride=STRIDE, order=order, ridge_relative=DEFAULT_RIDGE,
+                   train_runs=fit["runs"], val_runs=len(val),
+                   train_one_step_rmse_K=fit["one_step_rmse_K"],
+                   val_one_step_rmse_K=one_step["rmse_K"],
+                   val_one_step_melt_mae_K=one_step["melt_mae_K"],
+                   val_rollout_nrmse=rollout["nrmse_mean"],
+                   val_rollout_melt_mae_K=rollout["melt_mae"],
+                   val_rollout_iou=rollout["iou"]["iou"],
+                   val_rollout_energy_end_median=rollout["energy"]["end"]["median"],
+                   raw_filter_coefficients=json.dumps(fit["weights"][:-1]),
+                   effective_diffusion=json.dumps(alpha.tolist()),
+                   effective_diffusion_sum=float(alpha.sum()),
+                   laser_weight=fit["weights"][-1],
+                   gram_condition=fit["gram_condition"],
+                   penalized_gram_condition=fit["penalized_gram_condition"],
+                   fit_seconds=fit_seconds, train_fingerprint=fit["train_fingerprint"])
+        comparison.append(row)
+        fits[order] = fit
+        print(f"K={order}: val rollout nRMSE {row['val_rollout_nrmse']:.4f}, "
+              f"melt MAE {row['val_rollout_melt_mae_K']:.1f} K, "
+              f"IoU {row['val_rollout_iou']:.4f}", flush=True)
 
-    with open(report + ".tmp", "w", newline="") as file:
-        writer = csv.DictWriter(file, fieldnames=list(rows[0]), lineterminator="\n")
+    winner = min(comparison, key=lambda row: row["val_rollout_nrmse"])
+    if winner["order"] != SELECTED_ORDER:
+        raise RuntimeError(f"expected K={SELECTED_ORDER} to win on this validation split; "
+                           f"K={winner['order']} scored best. Review before exporting a checkpoint")
+    os.makedirs(os.path.dirname(REPORT), exist_ok=True)
+    with open(REPORT + ".tmp", "w", newline="") as file:
+        writer = csv.DictWriter(file, fieldnames=list(comparison[0]), lineterminator="\n")
         writer.writeheader()
-        writer.writerows(rows)
-    os.replace(report + ".tmp", report)
-    print(f"saved {report}")
+        writer.writerows(comparison)
+    os.replace(REPORT + ".tmp", REPORT)
+
+    selected = dict(fits[SELECTED_ORDER])
+    selected["selection"] = dict(split="val", metric="nrmse_mean", value=winner["val_rollout_nrmse"],
+                                 compared_orders=list(ORDERS))
+    os.makedirs(os.path.dirname(SELECTED_CHECKPOINT), exist_ok=True)
+    with open(SELECTED_CHECKPOINT + ".tmp", "w") as file:
+        json.dump(selected, file, indent=2)
+    os.replace(SELECTED_CHECKPOINT + ".tmp", SELECTED_CHECKPOINT)
+    print(f"selected K={SELECTED_ORDER}; saved {REPORT} and {SELECTED_CHECKPOINT}")
 
 
 if __name__ == "__main__":
