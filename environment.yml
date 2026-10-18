@@ -1,0 +1,23 @@
+name: gml
+channels:
+  - pytorch
+  - nvidia
+  - conda-forge
+  - defaults
+dependencies:
+  - python=3.10
+  - pip
+  - pytorch>=2.2
+  - torchvision
+  - pytorch-cuda=12.1
+  - ninja
+  - numpy>=1.24
+  - scipy>=1.10
+  - h5py>=3.8
+  - pyyaml>=6.0
+  - matplotlib>=3.7
+  - tqdm
+  - jupyter
+  - pip:
+      - torch_geometric>=2.5
+
