@@ -229,3 +229,4 @@ results/figures/
 wandb/
 # macOS
 .DS_Store
+*.zip
