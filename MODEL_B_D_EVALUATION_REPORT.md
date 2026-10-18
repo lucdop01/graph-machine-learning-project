@@ -200,3 +200,4 @@ result = rollout(run, predictor, stride=stride)
 print("Rollout nRMSE:", result["nrmse"])
 print("Melt Pool IoU:", result["iou"])
 ```
+
