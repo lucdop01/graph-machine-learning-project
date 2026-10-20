@@ -501,6 +501,11 @@ docs/            training_guide.md (unified guide & conventions), team reports a
 analysis/        plateau.py, run_model_b_gate.py, spectra.py, mesh_transfer.py
 configs/         model_a.yaml, model_b.yaml, model_c.yaml, model_d.yaml, gcn.yaml
 notebooks/       project.ipynb (course requirement)
-results/         eval/ (rollout metrics), figures/ (git-ignored)
+results/         eval/ (rollout metrics), models/ (final runs, see below), figures/ (git-ignored)
 checkpoints/     one folder per training run (git-ignored)
 ```
+
+`results/models/<run>/` holds the final runs that go into the results tables, shared through git: `best.pt`,
+`config.yaml` and `log.csv` only, never `last.pt`, sweep trials or short runs. Evaluate one with
+`python -m evaluation.rollout --split <split> --checkpoint results/models/<run>/best.pt`. Git keeps every version, so
+add each final run once. The folder must not be called `checkpoints`, because `.gitignore` ignores that name anywhere.
