@@ -1,5 +1,5 @@
 {
- "predictor": "c_aug_seed0",
+ "predictor": "model_c_seed0",
  "split": "val",
  "mesh": [
   "straight seed 0"
@@ -102,5 +102,5 @@
   "train_fingerprint": "a134269f75ce9513"
  },
  "mesh_seed": 0,
- "checkpoint": "checkpoints/c_aug_seed0/best.pt"
+ "checkpoint": "checkpoints/model_c_seed0/best.pt"
 }
