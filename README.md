@@ -11,7 +11,7 @@ moving over a thin Ti-6Al-4V plate, with melting.
 
 - **Model A** (`models/model_a.py`, `configs/model_a.yaml`): MeshGraphNet baseline with augmentations; three seeds without augmentation evaluated (`results/eval/a_seed*`).
 - **Model B** (`models/model_b.py`, `configs/model_b.yaml`): Physics-guided linear heat diffusion residual integrated into the shared training runner and unified harness (`train_harness.py`). Component and training checks pass (`verify.model_b`, `verify.model_b_training`).
-- **Model C** (`models/model_c.py`, `configs/model_c.yaml`): Direct enthalpy formulation (by Jack, merged into `main`). Predicts specific enthalpy change $\Delta H$ with continuous material table inversion ($T(H)$).
+- **Model C** (`models/model_c.py`, `configs/model_c.yaml`): Direct enthalpy formulation. Predicts specific enthalpy change $\Delta H$ with continuous material table inversion ($T(H)$).
 - **Model D** (`models/model_d.py`, `configs/model_d.yaml`): Strict heat conservation via antisymmetric edge heat fluxes ($F_{ij} = -F_{ji}$) guaranteeing zero net internal energy accumulation bit for bit.
 - **GCN / RGCN** (`models/gcn.py`, `configs/gcn.yaml`): Standard and residual Graph Convolutional Network baselines supporting customizable stride and dataset normalization statistics.
 - **Unified Training Harness** (`train_harness.py`, `verify/mock_train.py`): Dynamic model registry and parameter injection, exact reproducible seeding across PyTorch/NumPy/Python, atomic checkpoint saving/reloading, interval streaming, and parameter verification across all architectures and production configurations. See [docs/training_guide.md](docs/training_guide.md) for the complete unified training guide.
