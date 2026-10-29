@@ -16,16 +16,19 @@ if [[ -n "$active" ]]; then
   echo 'Wait for it to finish before submitting this pipeline.'
   exit 1
 fi
+# Query the live partition policy rather than assuming a 12-hour GPU limit.
+gpu_limit=$(sinfo -h -p gpu-a100-small -o '%l' | head -n 1)
+if [[ -z "$gpu_limit" ]]; then echo 'Cannot read GPU partition time limit'; exit 1; fi
 prep=$(sbatch --parsable lei_full_prepare.sbatch)
 prep=${prep%%;*}
 echo "Data preparation job: $prep"
-if evaluation=$(sbatch --parsable --dependency="afterok:$prep" lei_full_eval.sbatch); then
+if evaluation=$(sbatch --parsable --time="$gpu_limit" --dependency="afterok:$prep" lei_full_eval.sbatch); then
   echo "Evaluation array: ${evaluation%%;*} (starts only after preparation succeeds)"
   summary=$(sbatch --parsable --dependency="afterany:${evaluation%%;*}" lei_full_summary.sbatch)
   echo "Summary job: ${summary%%;*} (reports incomplete tasks even if evaluation fails)"
 else
   echo "Evaluation submission failed. Preparation $prep remains queued; do not resubmit preparation."
-  echo "Retry: sbatch --dependency=afterok:$prep lei_full_eval.sbatch"
+  echo "Retry: sbatch --time=$gpu_limit --dependency=afterok:$prep lei_full_eval.sbatch"
   exit 1
 fi
 echo 'Outputs: results/lei/full_eval. This evaluates existing weights; formal gate still needs matched A seeds 1/2.'
