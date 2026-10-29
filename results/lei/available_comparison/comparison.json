@@ -1,0 +1,85 @@
+{
+  "scope": "Existing validation evidence, 20 runs, stride 5; no new model execution",
+  "records": [
+    {
+      "model": "LF-T K5",
+      "nrmse": 0.34033077149350416,
+      "seed_std": null,
+      "seeds": 0,
+      "melt_mae_K": 146.01269342770337,
+      "iou": 0.6621993967244152,
+      "evidence": "raw per-run CSV and summary; deterministic fitted baseline"
+    },
+    {
+      "model": "A augmented",
+      "nrmse": 0.003557792646316606,
+      "seed_std": null,
+      "seeds": 1,
+      "melt_mae_K": 4.135313496766989,
+      "iou": 0.9759948756441247,
+      "evidence": "raw per-run CSV and summary; only seed 0 available"
+    },
+    {
+      "model": "B training logs",
+      "nrmse": 0.002892878045487031,
+      "seed_std": 0.00029796131064033563,
+      "seeds": 3,
+      "melt_mae_K": null,
+      "iou": null,
+      "evidence": "best validation scores verified from shared training logs and configs; checkpoints present; no independent rollout"
+    },
+    {
+      "model": "A unaugmented reference",
+      "nrmse": 0.0036044307822319815,
+      "seed_std": 7.120939919029878e-05,
+      "seeds": 3,
+      "melt_mae_K": 4.328262571586397,
+      "iou": 0.975007096396968,
+      "evidence": "raw three-seed summaries; augmentation differs, so not a matched B control"
+    }
+  ],
+  "b_seeds": [
+    0.0031205125719260705,
+    0.002555637787886534,
+    0.0030024837766484897
+  ],
+  "b_training_log_audit": [
+    {
+      "seed": 0,
+      "best_step": 88000,
+      "val_score": 0.0031205125719260705,
+      "checkpoint": "results/models/model_b_seed0/best.pt",
+      "checkpoint_sha256": "a36cee74e0f773d188842ecdf64c731686d2a45f8da7a15276e2f5ec0cf831c6"
+    },
+    {
+      "seed": 1,
+      "best_step": 92000,
+      "val_score": 0.002555637787886534,
+      "checkpoint": "results/models/model_b_seed1/best.pt",
+      "checkpoint_sha256": "7564606c7861d046ed3b83c94c5fcc0ddf93845ef041ff4c7d82d138c8f65213"
+    },
+    {
+      "seed": 2,
+      "best_step": 98000,
+      "val_score": 0.0030024837766484897,
+      "checkpoint": "results/models/model_b_seed2/best.pt",
+      "checkpoint_sha256": "779c7b0aad5decfa2800f6011abd562cc51d2c73d54cad0a7bc9e1dcd50b1329"
+    }
+  ],
+  "b_relative_nrmse_reduction_vs_augmented_a_seed0": 0.18688964392513518,
+  "formal_gate": "NOT DETERMINED",
+  "gate_missing": [
+    "independent per-run B rollout results",
+    "matched augmented A seeds 1 and 2",
+    "B and baseline scores on test_interp mesh seed 1",
+    "matched short-run training budget"
+  ],
+  "provenance": {
+    "main_snapshot": "8f168410f986467425e3076964c0828f61a0733d",
+    "lf_branch_commit": "3528c6cdd40b7b4e8b9f1cebd5f9abab27e22df2",
+    "b_report_sha256": "1fb4d45872399028170761771f03f26dbd20cb903632c232eac5f7644dc60013",
+    "a_source": "results/eval/model_a_seed0_val_s5.json",
+    "lf_source": "results/eval/lf_t_val_s5.json"
+  },
+  "a_lf_run_metadata_checked": true
+}

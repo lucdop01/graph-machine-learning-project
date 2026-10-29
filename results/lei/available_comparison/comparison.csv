@@ -1,0 +1,5 @@
+model,nrmse,seed_std,seeds,melt_mae_K,iou,evidence
+LF-T K5,0.34033077149350416,,0,146.01269342770337,0.6621993967244152,raw per-run CSV and summary; deterministic fitted baseline
+A augmented,0.003557792646316606,,1,4.135313496766989,0.9759948756441247,raw per-run CSV and summary; only seed 0 available
+B training logs,0.002892878045487031,0.00029796131064033563,3,,,best validation scores verified from shared training logs and configs; checkpoints present; no independent rollout
+A unaugmented reference,0.0036044307822319815,7.120939919029878e-05,3,4.328262571586397,0.975007096396968,"raw three-seed summaries; augmentation differs, so not a matched B control"
