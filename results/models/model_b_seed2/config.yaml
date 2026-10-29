@@ -1,0 +1,23 @@
+model:
+  name: model_b
+  width: 128
+  layers: 15
+  hidden_layers: 2
+  conductivity: 20.0
+  heat_capacity: 600.0
+  max_substeps: 10000
+data:
+  stride: 5
+training:
+  steps: 100000
+  batch_size: 4
+  lr: 0.0003
+  lr_end: 1.0e-06
+  noise: 0.03
+  seed: 2
+  val_every: 2000
+  log_every: 100
+  num_workers: 0
+  device: cuda
+  augment: true
+  precision: bf16
