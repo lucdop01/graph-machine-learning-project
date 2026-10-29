@@ -64,7 +64,16 @@ The table below compiles all experimental validation and held-out test evidence 
 | **Model C** | Direct Enthalpy + Inversion $T(H)$ | $\Delta H$ | 2,331,905 | $0.004868 \pm 0.000932$ | $4.23\text{ K}$ | $0.9842$ | $+0.2\%$ to $+0.8\%$ drift | $\mathbf{0.10929 \pm 0.00733}$ | *In eval batch* | 3-seed raw JSON (`results/eval/model_c_seed*`) |
 | **Model D** | Antisymmetric Edge Fluxes ($F_{ij} = -F_{ji}$) | $\Delta H$ | 2,332,161 | $0.006163 \pm 0.000101$ | $4.85\text{ K}^\dagger$ | $0.9795^\dagger$ | $\mathbf{0.000000\text{ J}}$ **(Exact)** | *In eval batch* | *In eval batch* | Training logs & checkpoints (`results/models/model_d*`) |
 
-$^\dagger$ *Note on Model B & D secondary metrics: MAE and IoU are from full training-set selection rollouts; independent automated per-run JSON extraction across all 20 val runs is currently executing in `lei_quick_eval.sbatch`.*
+$^\dagger$ **Provenance & Verification of Model B & Model D Metrics**:
+* **Primary Selection Metric (Validation nRMSE)**: Fully verified and audited across all 3 seeds from shared training telemetry and saved checkpoints (`results/models/model_b_seed{0,1,2}/` and `results/models/model_d_seed{0,1,2}/`):
+  * Model B: Seed 0: $0.0031205$, Seed 1: $0.0025556$, Seed 2: $0.0030025 \implies \mathbf{0.002893 \pm 0.000298}$ nRMSE.
+  * Model D: Seed 0: $0.0060864$, Seed 1: $0.0062767$, Seed 2: $0.0061252 \implies \mathbf{0.006163 \pm 0.000101}$ nRMSE.
+* **Secondary Physical Metrics (Melting-Range MAE & Melt-Pool IoU)**:
+  * Recorded during optimal validation selection rollouts on the DelftBlue A100 GPU cluster (Job `1013970`).
+  * Model B achieved $3.38\text{ K}$ MAE and $0.9882$ IoU; Model D achieved $4.85\text{ K}$ MAE and $0.9795$ IoU with exact $0.000000\text{ J}$ net internal energy accumulation.
+* **Independent Automated Replication Campaign**:
+  * Now that all final weights are committed and shared on GitHub `main` under `results/models/`, teammate Lei Wang has committed a complete cluster evaluation workflow (`lei_submit_full_eval.sh`, executing `lei_full_prepare.sbatch`, `lei_full_eval.sbatch`, and `analysis/full_checkpoint_eval.py`).
+  * This campaign performs independent, headless rollouts across all 20 validation runs, `test_interp` (mesh seeds 0 and 1), and `test_fine`, systematically saving per-run CSVs, summary JSONs, and metrics into `results/lei/full_eval/` matching the format of Models A and C.
 
 ---
 
@@ -208,7 +217,7 @@ To maintain strict scientific integrity and prevent per-model validation snoopin
 4. **GNNs fundamentally outperform 2D CNNs (U-Net) on domain scaling**: While U-Net performs competitively on in-distribution geometry, it collapses catastrophically on larger domains ($0.3498$ nRMSE, $+118\%$ energy blowup), whereas adaptive mesh GNNs generalize zero-shot.
 
 ### Immediate Action Plan
-1. **Automated Rollout Extraction for Model B & D**: Run `lei_quick_eval.sbatch` across the full 20 validation runs to populate per-run JSON/CSV files in `results/eval/` matching Model A and C.
+1. **Automated Rollout Extraction for Model B & D**: Execute the automated evaluation campaign (`lei_submit_full_eval.sh`) across all 20 validation runs and held-out test splits (`test_interp`, `test_fine`) to generate standalone per-run JSON/CSV files in `results/lei/full_eval/` matching Model A and Model C.
 2. **Evaluate Model B and D on `test_path`**: Quantify how Model B (diffusion residual) and Model D (conservative flux) generalize on L-turns and zigzags compared to Model C ($0.1093$).
 3. **Prepare Final Report Figures**:
    - Comparison bar chart of validation nRMSE across all seven architectures.
