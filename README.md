@@ -28,7 +28,9 @@ moving over a thin Ti-6Al-4V plate, with melting.
 | Model D (`models/model_d.py`) | Done: strictly conservative flux GNN with bit-exact zero internal energy error |
 | GCN / RGCN (`models/gcn.py`) | Done: baseline graph convolution architectures with normalization stats and stride support |
 | Unified Harness (`train_harness.py`) | Done: multi-model registry, exact reproducibility, mock verified (`verify.mock_train`) |
-| U-Net grid, partitions, remaining analysis | In progress (`graphs/`, `models/`, `analysis/`) |
+| Laplacian and LF-T baseline | Done: constrained Ridge order comparison, selected K=5 predictor and val rollout for the B gate |
+| U-Net baseline | Trained (seed 0) and evaluated; [final report](results/unet_final/report.md), selected checkpoint `checkpoints/unet_early_stop_retry_group_s5_seed0.pt` |
+| Partitions, remaining analysis | In progress (`graphs/`, `models/`, `analysis/`) |
 
 ## Setup
 
@@ -59,15 +61,44 @@ python -m graphs.preprocess                  # every run onto its mesh, data/gra
 python -m graphs.preprocess --splits test_interp --mesh-seed 1   # the new-mesh test
 python -m verify.graph_energy --dataset      # graph energy check over every run in data/splits.json
 python -m graphs.dataset --stride 5          # train normalisation statistics, sample counts per split
+python -m verify.laplacian                   # physical Laplacian checks on every committed mesh
+python -m verify.linear_filter               # LF-T basis, fit and predictor checks
+python -m models.linear_filter_experiment    # train K=1/3/5/10, compare val rollouts, export selected K=5
+python -m verify.grid_adapter                # synthetic mesh/grid round-trip checks
+python -m verify.unet                        # U-Net shape, padding and gradient checks
+python -m verify.unet_pipeline               # one-example overfit, closed-loop and shared-evaluation checks
+python -m verify.unet_norm                   # normalization and plate-size checks
 python -m graphs.figures                     # mesh and interpolation figures in results/figures/
 python -m verify.harness                     # check 8: the harness scores the solver's own frames, under a minute
 python -m evaluation.rollout --size-bins     # melt-pool size bins from the train split (once)
+python -m models.linear_filter_rollout --split val  # selected LF-T: results/eval/lf_t_val_s5.csv/.json
 python -m evaluation.rollout --split val --stride 5 --predictor oracle   # rollout metrics in results/eval/
 python -m models.train --config configs/model_a.yaml --steps 2000 --name smoke   # training smoke run (CPU default; use --device cuda on GPU)
 ```
 
 Generated runs go to `data/runs/` (git-ignored) and the index to `data/splits.json` (commit this one).
 The data is fully determined by the seeds in `generate.py`; host a copy of `data/runs/` outside GitHub and link it here.
+
+## Final U-Net baseline
+
+The frozen model uses a 5 µm grid, GroupNorm, stride 5 and a residual temperature update on the original mesh nodes.
+It was trained on all 150 train runs and selected at epoch 11 using only the 20 validation rollouts. The
+[canonical report](results/unet_final/report.md) contains validation and held-out results, checkpoint index,
+training curves, limitations and exact reproduction commands. `results/unet_final/` holds one CSV and JSON per
+held-out split; `results/unet_early_stop_retry/` keeps the selected run's complete training history and plots.
+Historical U-Net pilot and three-epoch data are archived under `results/archive/`. All five documented U-Net
+checkpoints are included in Git at their original paths.
+
+To evaluate the frozen checkpoint on a prepared split (the unseen mesh test requires the seed-1 preprocessing
+command in Quick start):
+
+```bash
+python3 -m models.evaluate_unet --checkpoint checkpoints/unet_early_stop_retry_group_s5_seed0.pt --split test_interp --device mps --out results/unet_reproduction_eval
+python3 -m models.evaluate_unet --checkpoint checkpoints/unet_early_stop_retry_group_s5_seed0.pt --split test_interp --mesh-seed 1 --device mps --out results/unet_reproduction_eval
+```
+
+Use `--device cuda` or `--device cpu` where appropriate. The training command and all six final evaluation commands
+are in the report; using new output paths preserves the archived results.
 
 ## Solver
 
@@ -162,6 +193,13 @@ other training data, another interpolation, another stride or another frame inte
 long, so it needs its own statistics). Statistics are never recomputed silently, because a trained model must keep the
 statistics it was trained with; `python -m graphs.dataset --stride <s> --recompute` rebuilds them.
 
+**U-Net pipeline** (`models/unet.py`, `models/unet_pipeline.py`, `graphs/grid.py`). The selected 488,705-parameter
+encoder-decoder maps rasterized current T, current melted fraction and exactly five frames of laser energy to
+normalized ΔT. The loss samples ΔT back at the original mesh nodes; rollout denormalizes it and adds it to the
+original node T. Architecture depth and widths remain configurable. `models/train_unet_early_stop.py` trains and
+selects by validation rollout nRMSE; `models/evaluate_unet.py` computes one-step and shared closed-loop metrics.
+The [final report](results/unet_final/report.md) records the configuration and the observed transfer failures.
+
 **Energy check** (`verify/graph_energy.py`, check 7). For every frame it compares the mesh energy with the solver
 energy. The difference is reported (a) relative to the laser input so far, from the frame where 5% of the run's input
 has arrived, and (b) relative to the run's total input, over every frame. It also compares the laser input on the mesh
@@ -193,6 +231,35 @@ Over the full dataset (every run in `data/splits.json`, and test_interp again on
 | test_large | 10 | 0.67% | 0.29% | 0.16% | 32 um |
 
 All 355 checks pass. "Laser per step" is the larger of the 5-frame and 2-frame values.
+
+## Linear graph filter baseline (LF-T)
+
+`graphs/laplacian.py` assembles the cotangent Laplacian from triangles using lumped node areas. LF-T scales it by a
+spectral bound and fits the polynomial `T_next = T + Σ a_k (Chebyshev_k(B) - I) T + b E`, where `E` is laser energy
+per node volume over one model step. This is a numerically scaled polynomial in the Laplacian. Each order combines
+nodes at graph distances up to that order; a coefficient is not the weight of one neighbor. Removing the constant
+response gives a stationary uniform field without laser input.
+
+`models/linear_filter.py` fits on **train only** with constrained Ridge least squares. Effective diffusion
+coefficients are nonnegative and sum to at most one; the laser coefficient is nonnegative and is not penalized.
+The Ridge strength is `1e-4` relative to the mean train temperature-feature power. The constraint bounds the
+free-diffusion spectral gain; it does not enforce heat conservation or a positive spatial kernel.
+
+`python -m models.linear_filter_experiment` fits K=1, 3, 5 and 10, scores each on all 20 `val` runs at stride 5,
+and writes `results/lf_t_order_comparison_val_s5.csv` with one-step errors, rollout metrics and coefficients.
+Selection uses the mean **val rollout nRMSE**, yielding K=5. Its small, train-fitted checkpoint is
+`models/artifacts/lf_t_s5_k5.json`; no test split is used for fitting or selection.
+
+`models.linear_filter.load_predictor()` returns the selected predictor with `step(run, T, k, stride)`. For Lei's
+B gate, run `python -m models.linear_filter_rollout --split val`. It uses the shared harness and writes per-run
+metrics to `results/eval/lf_t_val_s5.csv` and the split summary to `results/eval/lf_t_val_s5.json`. The selected
+model reaches nRMSE 0.3403, melting-range MAE 146 K and melt-pool IoU 0.662 on val. Its final energy remains
+about 40% of the laser input below the reference, so the metric report should accompany the checkpoint.
+
+The same two modules hold the fixed physical baseline: `graphs.laplacian.stiffness` is the operator of Model B's fixed
+branch, and `models.linear_filter.LinearFilter` integrates linear diffusion with constant k and cp and no fitted
+parameters (`python -m evaluation.rollout --predictor laplacian`). `analysis/team_lf_filter.py` and
+`analysis/team_lf_laplacian.py` are earlier snapshots of the LF-T code, kept for Lei's evaluation scripts.
 
 ## Evaluation
 
@@ -491,21 +558,29 @@ New-mesh tests reuse test_interp runs on a differently jittered mesh, so they ne
 ```
 solver/          ti64.py (material table), paths.py (laser paths), solver.py, events.py (melting and solidification events)
 verify/          energy_balance.py, rosenthal.py, stefan.py, convergence.py, cooling.py, solidification.py,
-                 graph_energy.py, harness.py, run_all.py, mock_train.py, model_b.py, model_b_training.py
+                 graph_energy.py, harness.py, run_all.py, mock_train.py, model_b.py, model_b_training.py,
+                 laplacian.py, linear_filter.py, grid_adapter.py, unet.py, unet_pipeline.py, unet_norm.py
 data/            generate.py, splits.json, meshes/ (commit), runs/ and graphs/ (git-ignored)
-graphs/          mesh.py, preprocess.py, dataset.py, figures.py
+graphs/          mesh.py, preprocess.py, dataset.py, laplacian.py, grid.py (U-Net grid), figures.py
 evaluation/      metrics.py, rollout.py (rollouts, evaluation, reference predictors, command line), torch_predictor.py
-models/          backbone.py, model_a.py, model_b.py, model_c.py, model_d.py, gcn.py, train.py
+models/          backbone.py, model_a.py, model_b.py, model_c.py, model_d.py, gcn.py, train.py,
+                 linear_filter.py, linear_filter_experiment.py, linear_filter_rollout.py, artifacts/ (LF-T fit),
+                 unet.py, unet_pipeline.py, train_unet.py, train_unet_early_stop.py, evaluate_unet.py,
+                 compare_unet_norm.py, plot_unet_history.py
 train_harness.py unified training engine with dynamic model registry, reproducible seeding, and atomic checkpointing
 docs/            training_guide.md (unified guide & conventions), team reports and documentation
 analysis/        plateau.py, run_model_b_gate.py, spectra.py, mesh_transfer.py
 configs/         model_a.yaml, model_b.yaml, model_c.yaml, model_d.yaml, gcn.yaml
 notebooks/       project.ipynb (course requirement)
-results/         eval/ (rollout metrics), models/ (final runs, see below), figures/ (git-ignored)
-checkpoints/     one folder per training run (git-ignored)
+results/         eval/ (rollout metrics), models/ (final runs, see below), figures/ (git-ignored),
+                 unet_final/ (U-Net report and held-out metrics), unet_early_stop_retry/ (selected U-Net training run),
+                 archive/ (historical U-Net experiments)
+checkpoints/     one folder per training run (git-ignored), except the five versioned U-Net checkpoints
 ```
 
 `results/models/<run>/` holds the final runs that go into the results tables, shared through git: `best.pt`,
 `config.yaml` and `log.csv` only, never `last.pt`, sweep trials or short runs. Evaluate one with
 `python -m evaluation.rollout --split <split> --checkpoint results/models/<run>/best.pt`. Git keeps every version, so
 add each final run once. The folder must not be called `checkpoints`, because `.gitignore` ignores that name anywhere.
+The only exception is the U-Net, whose five checkpoints stay versioned at their original paths in `checkpoints/` (see
+[results/unet_final/report.md](results/unet_final/report.md)); they are not `models/train.py` checkpoints.
