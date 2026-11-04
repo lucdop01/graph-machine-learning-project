@@ -1,0 +1,94 @@
+{
+ "predictor": "model_c_seed1",
+ "split": "test_extrap",
+ "mesh": [
+  "straight seed 0"
+ ],
+ "stride": 5,
+ "step_us": 66.69588270958498,
+ "runs": 15,
+ "nrmse_mean": 0.016179473277132244,
+ "nrmse_median": 0.008809628333004471,
+ "nrmse_max": 0.06897788210367574,
+ "melt_mae": 22.9109163709597,
+ "melt_points": 75627,
+ "iou": {
+  "runs": 15,
+  "iou": 0.9147954900660472,
+  "iou_soft": 0.9139226546083071,
+  "runs_with_union": 15
+ },
+ "iou_by_bin": {
+  "large": {
+   "runs": 15,
+   "iou": 0.9147954900660472,
+   "iou_soft": 0.9139226546083071,
+   "runs_with_union": 15
+  }
+ },
+ "solidification": {
+  "med": -0.010592650701604367,
+  "med_abs": 0.053776813984104596,
+  "melted_ref": 16163,
+  "melted": 15402,
+  "compared": 15280,
+  "missed": 765,
+  "spurious": 4,
+  "unfinished_ref": 100,
+  "unfinished": 84
+ },
+ "cadence": {
+  "med": -0.02562296665252958,
+  "med_abs": 0.05808071678979671,
+  "melted_ref": 16384,
+  "melted": 16163,
+  "compared": 16063,
+  "missed": 221,
+  "spurious": 0,
+  "unfinished_ref": 0,
+  "unfinished": 100
+ },
+ "energy": {
+  "a": {
+   "median": 0.01375245997741082,
+   "max": 0.08347228504785181
+  },
+  "b": {
+   "median": 0.011227202923472238,
+   "max": 0.08264254302672058
+  },
+  "end": {
+   "median": 0.008287288133070348,
+   "max": 0.07606208201722853
+  }
+ },
+ "budget": {
+  "a": {
+   "median": 0.013390599977265867,
+   "max": 0.08156518059263153
+  },
+  "b": {
+   "median": 0.01284865511779059,
+   "max": 0.08079073655684185
+  },
+  "end": {
+   "median": 0.010798793066356829,
+   "max": 0.07274075866712262
+  }
+ },
+ "wall_s": 12.417193300021609,
+ "steps": 537,
+ "size_bins": {
+  "edges_m2": [
+   1.9754550633443152e-09,
+   5.842003519340709e-09
+  ],
+  "source": "train split, mesh seed 0",
+  "runs": 150,
+  "runs_with_pool": 74,
+  "definition": "terciles of the peak melt-pool area (melted fraction above 0.5, node areas, every saved frame) over the runs with a pool; small <= edge 1 < medium <= edge 2 < large; none = no pool",
+  "train_fingerprint": "a134269f75ce9513"
+ },
+ "mesh_seed": 0,
+ "checkpoint": "results/models/model_c_seed1/best.pt"
+}
