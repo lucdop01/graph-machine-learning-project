@@ -9,7 +9,7 @@ moving over a thin Ti-6Al-4V plate, with melting.
 
 ## Status
 
-- **Model A** (`models/model_a.py`, `configs/model_a.yaml`): MeshGraphNet baseline with augmentations; three seeds without augmentation evaluated (`results/eval/a_seed*`).
+- **Model A** (`models/model_a.py`, `configs/model_a.yaml`): MeshGraphNet baseline; three seeds each with augmentation (the shared runs, `results/models/model_a_seed*`, `results/eval/model_a_seed*`) and without it (the ablation, `results/eval/a_seed*`), evaluated on every split.
 - **Model B** (`models/model_b.py`, `configs/model_b.yaml`): Physics-guided linear heat diffusion residual integrated into the shared training runner and unified harness (`train_harness.py`). Component and training checks pass (`verify.model_b`, `verify.model_b_training`).
 - **Model C** (`models/model_c.py`, `configs/model_c.yaml`): Direct enthalpy formulation. Predicts specific enthalpy change $\Delta H$ with continuous material table inversion ($T(H)$).
 - **Model D** (`models/model_d.py`, `configs/model_d.yaml`): Strict heat conservation via antisymmetric edge heat fluxes ($F_{ij} = -F_{ji}$) guaranteeing zero net internal energy accumulation bit for bit.
@@ -22,7 +22,7 @@ moving over a thin Ti-6Al-4V plate, with melting.
 | Data generator (`data/generate.py`) | Done, cools every run until fully solid; full run checked on every split |
 | Graph preprocessing (`graphs/`) | Done: meshes, node data, PyTorch Geometric dataset; energy check passes (check 7) |
 | Rollout and evaluation harness (`evaluation/`) | Done: rollouts, metrics, selection score, reference predictors; the solver's own frames score zero (check 8) |
-| Model A (`models/model_a.py`) | Done: baseline evaluated across 3 seeds without augmentation; augmentations supported |
+| Model A (`models/model_a.py`) | Done: three seeds each without and with augmentation trained and evaluated on every split (`results/eval/a_seed*`, `model_a_seed*`); augmentation improves unseen paths, with regressions on the new mesh seed |
 | Model B (`models/model_b.py`) | Done: physics-informed linear diffusion residual integrated into harness and verified |
 | Model C (`models/model_c.py`) | Done: enthalpy formulation with continuous material inversion, integrated into harness |
 | Model D (`models/model_d.py`) | Done: strictly conservative flux GNN with bit-exact zero internal energy error |
@@ -393,10 +393,10 @@ matrix work in the edge MLPs, which take most of a training step.
   normalisation and to the node positions, so the whole sample turns: plate, mesh, temperature and laser field. Edge
   lengths, node features, volumes and targets do not change. Conduction is isotropic and the plate edges are
   adiabatic, so every transformed sample is physically valid. Validation and evaluation are never augmented. Added on
-  13 Oct 2026, after model A trained without it deposited too little laser heat on test_path wherever the situation
+  13 Oct 2026, after model A trained without it showed a net energy deficit on test_path wherever the situation
   differed from training (laser moving +x into a cold plate). The runs `a_seed0`-`a_seed2` are that setup and are kept
-  as the ablation. Rotations fix only the direction part: a laser next to an earlier, still hot track does not occur
-  in training either way. Every configuration must set `augment` (training refuses one without it, so a new model's
+  as the ablation. Rotations target sensitivity to the coordinate frame; a laser next to an earlier, still hot track
+  does not occur in training either way. Every configuration must set `augment` (training refuses one without it, so a new model's
   configuration copies `augment: true` from `configs/model_a.yaml`), and the checkpoint records it. A resumed run
   keeps its own setting; runs saved before the setting existed resume without augmentation.
 - Precision (`precision`, also `--precision`, required in the configuration): with `bf16` the training forward pass
@@ -474,8 +474,55 @@ test_path fails for all three seeds. With seed 0 every L-turn ends 9-12% below t
 28-38%, also runs without a melt pool.
 Predicted from the true state, A adds 98% of a step's laser energy when the laser moves +x into a cold plate (the
 training situation), 54-79% after the L-turn (+y), about 40% on a -x leg beside an earlier track and 23-40% on a +x
-leg beside a hot track. So A learned the training situation, both the laser direction and the cold surroundings. The
-augmentation above addresses the direction; nothing in training covers the hot surroundings.
+leg beside a hot track. These net energy errors are consistent with sensitivity to direction and thermal context.
+They combine the learned laser response and diffusion update; the augmentation experiment below tests how much
+improvement follows from removing the fixed coordinate orientation in training.
+
+**Results, model A with augmentation** (training runs `a_aug_seed0`-`a_aug_seed2`, shared as
+`results/models/model_a_seed0`-`model_a_seed2` with only the stored run name changed; files `results/eval/model_a_seed*`,
+evaluated 29 Oct 2026 and the test splits again from the shared checkpoints on 4 Nov). All three runs finished
+100,000 steps. Best validation checkpoints are at steps 90,000, 84,000 and 98,000; re-evaluated scores are
+0.0036403522, 0.0038231169 and 0.0033595858, within 1.3e-9 of their training logs. The saved configurations differ
+from the original runs only in `augment`, for each matching seed. Noise, learning rate, training data and precision
+are unchanged. The original results above remain the ablation. Mean and sample standard deviation over three seeds:
+
+| Split | nRMSE | Melting-range MAE | IoU | Energy error (a), median |
+|---|---|---|---|---|
+| test_interp | 0.0043 +/- 0.0003 | 7.1 +/- 0.2 K | 0.961 +/- 0.001 | 1.38 +/- 0.61% |
+| test_interp, mesh seed 1 | 0.0118 +/- 0.0015 | 8.7 +/- 0.4 K | 0.952 +/- 0.002 | 1.10 +/- 0.15% |
+| test_extrap | 0.0156 +/- 0.0006 | 24.1 +/- 0.7 K | 0.910 +/- 0.003 | 1.32 +/- 0.47% |
+| test_path | 0.0993 +/- 0.0068 | 252.2 +/- 24.0 K | 0.390 +/- 0.030 | 9.56 +/- 1.22% |
+| test_fine (5 um truth) | 0.0054 +/- 0.0001 | 7.9 +/- 0.2 K | 0.951 +/- 0.004 | 1.44 +/- 0.51% |
+| test_large | 0.0114 +/- 0.0005 | 4.9 +/- 0.3 K | 0.969 +/- 0.001 | 2.42 +/- 0.91% |
+
+Every one of the 20 path runs improves in nRMSE for every seed. The combined test_path nRMSE falls by 42.5%, with
+different outcomes for the two path families. Each energy entry below is the mean across seeds of the median signed
+final energy error across that family's ten runs, relative to total laser input. IoU pools intersections and unions
+within each family before averaging across seeds.
+
+| Path | nRMSE, original -> augmented | IoU, original -> augmented | Final energy error, original -> augmented |
+|---|---|---|---|
+| L-turn | 0.1039 -> 0.0360 | 0.636 -> 0.868 | -10.34% -> -1.79% |
+| Zigzag | 0.2417 -> 0.1626 | 0.286 -> 0.368 | -30.86% -> -22.02% |
+
+The seed-0 diagnostics predict one step from each true state. On the L-turn's +y leg the ratio of summed predicted
+energy increments to summed laser input rises from 0.592 to 0.956. On the zigzag's -x leg it rises from 0.405 to
+0.643, while on the second +x leg beside a hot track it stays poor (0.268 -> 0.274). These are ratios weighted by
+laser input over each leg, including the final partial laser step. The corresponding truth ratios are close to 1.
+Augmentation substantially reduces the L-turn failure; the zigzag legs beside an earlier hot track remain a serious
+failure. Mesh topology and boundary distance also change with the path, so this does not isolate the hot surroundings
+as the cause. On the straight +x track, the training situation, the ratio moves from 0.977 to 1.025: augmentation turns
+a small energy deficit into a small excess of similar size, consistent with test_interp energy error (a) rising from
+0.89% to 1.38%.
+
+The trade-offs matter: ordinary test_interp nRMSE is almost unchanged, but new-mesh nRMSE increases by 74%, parameter
+extrapolation nRMSE by 14%, and test_large nRMSE by 10%. On the new mesh 88 of the 90 run and seed pairs get worse,
+and the spread between seeds grows about fivefold. That domain is one of the two Model B gate domains, and every other
+model trains with augmentation, so read model comparisons there with this in mind. A small spurious melt pool, 1-2 x
+10^-4 mm^2 (a few nodes above the melting threshold), appears on test_large_006 for every augmented seed and on
+test_interp_027 with mesh seed 1 for augmented seed 2. Lower energy drift alone therefore does not establish better
+temperature or melt-pool predictions. See the [full augmentation review](docs/model_a_augmentation_review.md) and
+[numerical summary and checkpoint hashes](results/eval/model_a_augmentation_summary.json).
 
 ## Evaluation notes
 
