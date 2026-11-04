@@ -9,10 +9,12 @@ Done:
   - gcn.py: Standard and residual Graph Convolutional Network baselines (target: dT)
   - linear_filter.py: Fixed discrete Laplacian baseline, and the area-lumped LF-T filter with its constrained Ridge
     fit and selected predictor (linear_filter_experiment.py, linear_filter_rollout.py)
+  - unet.py, unet_pipeline.py: Grid U-Net baseline: architecture, mesh-node pipeline, training (train_unet.py,
+    train_unet_early_stop.py) and evaluation (evaluate_unet.py)
   - train.py: Training, validation on rollouts, checkpoints, resume (python -m models.train)
 
 Planned:
-  - LF-H filter, unet.py. A-dual is model A with a second output head.
+  - LF-H filter. A-dual is model A with a second output head.
 
 Needs torch and torch_geometric; CI (numpy only) never imports this package.
 """
