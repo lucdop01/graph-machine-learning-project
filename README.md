@@ -28,6 +28,7 @@ moving over a thin Ti-6Al-4V plate, with melting.
 | Model D (`models/model_d.py`) | Done: strictly conservative flux GNN with bit-exact zero internal energy error |
 | GCN / RGCN (`models/gcn.py`) | Done: baseline graph convolution architectures with normalization stats and stride support |
 | Unified Harness (`train_harness.py`) | Done: multi-model registry, exact reproducibility, mock verified (`verify.mock_train`) |
+| Laplacian and LF-T baseline | Done: constrained Ridge order comparison, selected K=5 predictor and val rollout for the B gate |
 | U-Net grid, partitions, remaining analysis | In progress (`graphs/`, `models/`, `analysis/`) |
 
 ## Setup
@@ -59,9 +60,13 @@ python -m graphs.preprocess                  # every run onto its mesh, data/gra
 python -m graphs.preprocess --splits test_interp --mesh-seed 1   # the new-mesh test
 python -m verify.graph_energy --dataset      # graph energy check over every run in data/splits.json
 python -m graphs.dataset --stride 5          # train normalisation statistics, sample counts per split
+python -m verify.laplacian                   # physical Laplacian checks on every committed mesh
+python -m verify.linear_filter               # LF-T basis, fit and predictor checks
+python -m models.linear_filter_experiment    # train K=1/3/5/10, compare val rollouts, export selected K=5
 python -m graphs.figures                     # mesh and interpolation figures in results/figures/
 python -m verify.harness                     # check 8: the harness scores the solver's own frames, under a minute
 python -m evaluation.rollout --size-bins     # melt-pool size bins from the train split (once)
+python -m models.linear_filter_rollout --split val  # selected LF-T: results/eval/lf_t_val_s5.csv/.json
 python -m evaluation.rollout --split val --stride 5 --predictor oracle   # rollout metrics in results/eval/
 python -m models.train --config configs/model_a.yaml --steps 2000 --name smoke   # training smoke run (CPU default; use --device cuda on GPU)
 ```
@@ -193,6 +198,35 @@ Over the full dataset (every run in `data/splits.json`, and test_interp again on
 | test_large | 10 | 0.67% | 0.29% | 0.16% | 32 um |
 
 All 355 checks pass. "Laser per step" is the larger of the 5-frame and 2-frame values.
+
+## Linear graph filter baseline (LF-T)
+
+`graphs/laplacian.py` assembles the cotangent Laplacian from triangles using lumped node areas. LF-T scales it by a
+spectral bound and fits the polynomial `T_next = T + Σ a_k (Chebyshev_k(B) - I) T + b E`, where `E` is laser energy
+per node volume over one model step. This is a numerically scaled polynomial in the Laplacian. Each order combines
+nodes at graph distances up to that order; a coefficient is not the weight of one neighbor. Removing the constant
+response gives a stationary uniform field without laser input.
+
+`models/linear_filter.py` fits on **train only** with constrained Ridge least squares. Effective diffusion
+coefficients are nonnegative and sum to at most one; the laser coefficient is nonnegative and is not penalized.
+The Ridge strength is `1e-4` relative to the mean train temperature-feature power. The constraint bounds the
+free-diffusion spectral gain; it does not enforce heat conservation or a positive spatial kernel.
+
+`python -m models.linear_filter_experiment` fits K=1, 3, 5 and 10, scores each on all 20 `val` runs at stride 5,
+and writes `results/lf_t_order_comparison_val_s5.csv` with one-step errors, rollout metrics and coefficients.
+Selection uses the mean **val rollout nRMSE**, yielding K=5. Its small, train-fitted checkpoint is
+`models/artifacts/lf_t_s5_k5.json`; no test split is used for fitting or selection.
+
+`models.linear_filter.load_predictor()` returns the selected predictor with `step(run, T, k, stride)`. For Lei's
+B gate, run `python -m models.linear_filter_rollout --split val`. It uses the shared harness and writes per-run
+metrics to `results/eval/lf_t_val_s5.csv` and the split summary to `results/eval/lf_t_val_s5.json`. The selected
+model reaches nRMSE 0.3403, melting-range MAE 146 K and melt-pool IoU 0.662 on val. Its final energy remains
+about 40% of the laser input below the reference, so the metric report should accompany the checkpoint.
+
+The same two modules hold the fixed physical baseline: `graphs.laplacian.stiffness` is the operator of Model B's fixed
+branch, and `models.linear_filter.LinearFilter` integrates linear diffusion with constant k and cp and no fitted
+parameters (`python -m evaluation.rollout --predictor laplacian`). `analysis/team_lf_filter.py` and
+`analysis/team_lf_laplacian.py` are earlier snapshots of the LF-T code, kept for Lei's evaluation scripts.
 
 ## Evaluation
 
@@ -491,11 +525,13 @@ New-mesh tests reuse test_interp runs on a differently jittered mesh, so they ne
 ```
 solver/          ti64.py (material table), paths.py (laser paths), solver.py, events.py (melting and solidification events)
 verify/          energy_balance.py, rosenthal.py, stefan.py, convergence.py, cooling.py, solidification.py,
-                 graph_energy.py, harness.py, run_all.py, mock_train.py, model_b.py, model_b_training.py
+                 graph_energy.py, harness.py, run_all.py, mock_train.py, model_b.py, model_b_training.py,
+                 laplacian.py, linear_filter.py
 data/            generate.py, splits.json, meshes/ (commit), runs/ and graphs/ (git-ignored)
-graphs/          mesh.py, preprocess.py, dataset.py, figures.py
+graphs/          mesh.py, preprocess.py, dataset.py, laplacian.py, figures.py
 evaluation/      metrics.py, rollout.py (rollouts, evaluation, reference predictors, command line), torch_predictor.py
-models/          backbone.py, model_a.py, model_b.py, model_c.py, model_d.py, gcn.py, train.py
+models/          backbone.py, model_a.py, model_b.py, model_c.py, model_d.py, gcn.py, train.py,
+                 linear_filter.py, linear_filter_experiment.py, linear_filter_rollout.py, artifacts/ (LF-T fit)
 train_harness.py unified training engine with dynamic model registry, reproducible seeding, and atomic checkpointing
 docs/            training_guide.md (unified guide & conventions), team reports and documentation
 analysis/        plateau.py, run_model_b_gate.py, spectra.py, mesh_transfer.py

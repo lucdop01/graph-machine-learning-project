@@ -1,0 +1,40 @@
+{
+  "kind": "LF-T",
+  "basis": "chebyshev_constant_removed",
+  "constraint": "spectral_convex",
+  "order": 5,
+  "stride": 5,
+  "frame_us": 13.339176541916995,
+  "train_fingerprint": "a134269f75ce9513",
+  "scales": {
+    "T": 358.0930844040429,
+    "E": 391392826.47812754,
+    "dT": 106.06279350556059
+  },
+  "weights": [
+    1.6479116058735673e-06,
+    1.6092147561923827e-06,
+    1.6902059350579798e-06,
+    3.1734031630321116e-07,
+    3.3762304917919423,
+    0.8474228240288993
+  ],
+  "runs": 150,
+  "nodes_steps": 94404516,
+  "gram_condition": 119396057267.52257,
+  "one_step_rmse_K": 44.12648502973754,
+  "persistence_rmse_K": 107.1777874156009,
+  "ridge_relative": 0.0001,
+  "penalized_gram_condition": 2848186.674856992,
+  "selection": {
+    "split": "val",
+    "metric": "nrmse_mean",
+    "value": 0.34033077149350416,
+    "compared_orders": [
+      1,
+      3,
+      5,
+      10
+    ]
+  }
+}
