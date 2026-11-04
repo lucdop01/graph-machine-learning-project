@@ -1,0 +1,94 @@
+{
+ "predictor": "gcn_seed1",
+ "split": "test_extrap",
+ "mesh": [
+  "straight seed 0"
+ ],
+ "stride": 5,
+ "step_us": 66.69588270958498,
+ "runs": 15,
+ "nrmse_mean": 0.03917083164475699,
+ "nrmse_median": 0.03460358701430201,
+ "nrmse_max": 0.09380397644384406,
+ "melt_mae": 42.48297358189012,
+ "melt_points": 75627,
+ "iou": {
+  "runs": 15,
+  "iou": 0.8494876329504958,
+  "iou_soft": 0.8522062772826502,
+  "runs_with_union": 15
+ },
+ "iou_by_bin": {
+  "large": {
+   "runs": 15,
+   "iou": 0.8494876329504958,
+   "iou_soft": 0.8522062772826502,
+   "runs_with_union": 15
+  }
+ },
+ "solidification": {
+  "med": -0.12739793406118113,
+  "med_abs": 0.1897953266256052,
+  "melted_ref": 16163,
+  "melted": 15446,
+  "compared": 15263,
+  "missed": 753,
+  "spurious": 36,
+  "unfinished_ref": 100,
+  "unfinished": 87
+ },
+ "cadence": {
+  "med": -0.02562296665252958,
+  "med_abs": 0.05808071678979671,
+  "melted_ref": 16384,
+  "melted": 16163,
+  "compared": 16063,
+  "missed": 221,
+  "spurious": 0,
+  "unfinished_ref": 0,
+  "unfinished": 100
+ },
+ "energy": {
+  "a": {
+   "median": 0.029533391282159004,
+   "max": 0.07344378065470313
+  },
+  "b": {
+   "median": 0.023027799292276642,
+   "max": 0.07248578358175843
+  },
+  "end": {
+   "median": 0.01763206099684627,
+   "max": 0.038209855454371625
+  }
+ },
+ "budget": {
+  "a": {
+   "median": 0.031068753500029984,
+   "max": 0.07153667619948283
+  },
+  "b": {
+   "median": 0.024349276226834932,
+   "max": 0.0706339771118797
+  },
+  "end": {
+   "median": 0.02049654789730302,
+   "max": 0.03488853210426572
+  }
+ },
+ "wall_s": 7.817180099988036,
+ "steps": 537,
+ "size_bins": {
+  "edges_m2": [
+   1.9754550633443152e-09,
+   5.842003519340709e-09
+  ],
+  "source": "train split, mesh seed 0",
+  "runs": 150,
+  "runs_with_pool": 74,
+  "definition": "terciles of the peak melt-pool area (melted fraction above 0.5, node areas, every saved frame) over the runs with a pool; small <= edge 1 < medium <= edge 2 < large; none = no pool",
+  "train_fingerprint": "a134269f75ce9513"
+ },
+ "mesh_seed": 0,
+ "checkpoint": "results/models/gcn_seed1/best.pt"
+}

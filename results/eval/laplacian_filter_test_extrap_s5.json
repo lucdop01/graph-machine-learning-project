@@ -1,0 +1,93 @@
+{
+ "predictor": "laplacian_filter",
+ "split": "test_extrap",
+ "mesh": [
+  "straight seed 0"
+ ],
+ "stride": 5,
+ "step_us": 66.69588270958498,
+ "runs": 15,
+ "nrmse_mean": 0.18516099367574662,
+ "nrmse_median": 0.18741952999627684,
+ "nrmse_max": 0.20556591475033617,
+ "melt_mae": 296.1090189940156,
+ "melt_points": 75627,
+ "iou": {
+  "runs": 15,
+  "iou": 0.5997566234544444,
+  "iou_soft": 0.5938791623568942,
+  "runs_with_union": 15
+ },
+ "iou_by_bin": {
+  "large": {
+   "runs": 15,
+   "iou": 0.5997566234544444,
+   "iou_soft": 0.5938791623568942,
+   "runs_with_union": 15
+  }
+ },
+ "solidification": {
+  "med": -0.5147734309407964,
+  "med_abs": 0.5147734309407964,
+  "melted_ref": 16163,
+  "melted": 20409,
+  "compared": 15281,
+  "missed": 0,
+  "spurious": 4246,
+  "unfinished_ref": 100,
+  "unfinished": 882
+ },
+ "cadence": {
+  "med": -0.02562296665252958,
+  "med_abs": 0.05808071678979671,
+  "melted_ref": 16384,
+  "melted": 16163,
+  "compared": 16063,
+  "missed": 221,
+  "spurious": 0,
+  "unfinished_ref": 0,
+  "unfinished": 100
+ },
+ "energy": {
+  "a": {
+   "median": 0.19102751126640286,
+   "max": 0.20587059997758267
+  },
+  "b": {
+   "median": 0.09159662887900767,
+   "max": 0.1117285237370319
+  },
+  "end": {
+   "median": 0.03569493929440645,
+   "max": 0.04345048528212352
+  }
+ },
+ "budget": {
+  "a": {
+   "median": 0.19120303650895668,
+   "max": 0.20474377888562934
+  },
+  "b": {
+   "median": 0.09307850670570715,
+   "max": 0.11346048794556354
+  },
+  "end": {
+   "median": 0.03879138225656762,
+   "max": 0.0465143949202994
+  }
+ },
+ "wall_s": 1.8438250999934098,
+ "steps": 537,
+ "size_bins": {
+  "edges_m2": [
+   1.9754550633443152e-09,
+   5.842003519340709e-09
+  ],
+  "source": "train split, mesh seed 0",
+  "runs": 150,
+  "runs_with_pool": 74,
+  "definition": "terciles of the peak melt-pool area (melted fraction above 0.5, node areas, every saved frame) over the runs with a pool; small <= edge 1 < medium <= edge 2 < large; none = no pool",
+  "train_fingerprint": "a134269f75ce9513"
+ },
+ "mesh_seed": 0
+}
