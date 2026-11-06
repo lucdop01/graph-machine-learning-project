@@ -1,5 +1,7 @@
 # Lei: Model B and mesh transfer
 
+> **Update, 6 November 2026:** Updated three-seed comparison and mesh-transfer results are in [Model B results](lei_model_b_results.md). The dated execution-status statements below are historical; use the new results document for current numerical conclusions.
+
 Report-ready method text and the checkpoint-free spectral figure are in
 docs/lei_report_draft.md. Settings to confirm with teammates are in
 docs/lei_team_alignment.md; no team message has been sent.

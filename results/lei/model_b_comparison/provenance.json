@@ -1,0 +1,1361 @@
+{
+  "eval_commit": "011f7243148a8232100afd2289675431ad734604",
+  "table_commit": "011f7243148a8232100afd2289675431ad734604",
+  "main_commit": "1d67192f123b059d87f094517d7f48ee9c9c90db",
+  "files": [
+    {
+      "path": "results/eval/model_a_seed0_val_s5.json",
+      "commit": "011f7243148a8232100afd2289675431ad734604",
+      "sha256": "faf8083445047cf1076e278dd12f2a9cb725aa60d420a90d72633daa8c508c09"
+    },
+    {
+      "path": "results/eval/model_a_seed0_val_s5.csv",
+      "commit": "011f7243148a8232100afd2289675431ad734604",
+      "sha256": "5c89bede98f8a220485cebeeeb23ae372782854c1272cd28713d1af0a4e9eace"
+    },
+    {
+      "path": "results/eval/model_a_seed1_val_s5.json",
+      "commit": "011f7243148a8232100afd2289675431ad734604",
+      "sha256": "aa57f8143791f570918f4abcba6e6ac88c6e1fe202ef4997df5d41adc5a216b0"
+    },
+    {
+      "path": "results/eval/model_a_seed1_val_s5.csv",
+      "commit": "011f7243148a8232100afd2289675431ad734604",
+      "sha256": "708cc09ad66b9954d020a71bdfa3d3b0c064dcd1c27c6f2a9a5946e3230d1ac2"
+    },
+    {
+      "path": "results/eval/model_a_seed2_val_s5.json",
+      "commit": "011f7243148a8232100afd2289675431ad734604",
+      "sha256": "73513a5126d0e105d78d91362a31410020c068bcca223a259a2171a7913d2451"
+    },
+    {
+      "path": "results/eval/model_a_seed2_val_s5.csv",
+      "commit": "011f7243148a8232100afd2289675431ad734604",
+      "sha256": "19ee000f113d9987a14ab0c1a44d97ea0203c0fbbf33c009df5e9e732bacc464"
+    },
+    {
+      "path": "results/eval/model_b_seed0_val_s5.json",
+      "commit": "011f7243148a8232100afd2289675431ad734604",
+      "sha256": "905b028f7001cfbf1e6b49831b8dfb28c57a5f7aa98fe580761690d17ff335d3"
+    },
+    {
+      "path": "results/eval/model_b_seed0_val_s5.csv",
+      "commit": "011f7243148a8232100afd2289675431ad734604",
+      "sha256": "9689c741d3991542b72bb57c0183c6e12d160720ae3692cb995df87edda0986e"
+    },
+    {
+      "path": "results/eval/model_b_seed1_val_s5.json",
+      "commit": "011f7243148a8232100afd2289675431ad734604",
+      "sha256": "c7a8275361142d3963edcc795744011e6b44d494dee844c3b432daebc42a0277"
+    },
+    {
+      "path": "results/eval/model_b_seed1_val_s5.csv",
+      "commit": "011f7243148a8232100afd2289675431ad734604",
+      "sha256": "0a7e7b06ad1a15350cba76b5aa1d54cea35f93d6c60804e0fa424637c86807e0"
+    },
+    {
+      "path": "results/eval/model_b_seed2_val_s5.json",
+      "commit": "011f7243148a8232100afd2289675431ad734604",
+      "sha256": "43141f63d92b0e40a4ee252442cf51db6234e9e2720e4f2db8f47bbf4e21d725"
+    },
+    {
+      "path": "results/eval/model_b_seed2_val_s5.csv",
+      "commit": "011f7243148a8232100afd2289675431ad734604",
+      "sha256": "7fe6df280d6ed826c4cb6593fcc0f6b4531df3267e539a0ead9f009d54147d72"
+    },
+    {
+      "path": "results/eval/model_c_seed0_val_s5.json",
+      "commit": "011f7243148a8232100afd2289675431ad734604",
+      "sha256": "08a342880c8b5dd55c76b95bcd47e4ac2cebc3824c29cd9b49dc3ebba44166a1"
+    },
+    {
+      "path": "results/eval/model_c_seed0_val_s5.csv",
+      "commit": "011f7243148a8232100afd2289675431ad734604",
+      "sha256": "dfcb548b36928cac56e8c2d722fcdeb030f6e1fee88a6592a045a96a30a4c448"
+    },
+    {
+      "path": "results/eval/model_c_seed1_val_s5.json",
+      "commit": "011f7243148a8232100afd2289675431ad734604",
+      "sha256": "459388bbdf24c63b6644d9d5d74b45a9ec1e11dc70109392aa470868a9b43552"
+    },
+    {
+      "path": "results/eval/model_c_seed1_val_s5.csv",
+      "commit": "011f7243148a8232100afd2289675431ad734604",
+      "sha256": "b8e7a2bd3c124aadda5bce4836e633146c432007dcc2e63a7a69222b35da11fe"
+    },
+    {
+      "path": "results/eval/model_c_seed2_val_s5.json",
+      "commit": "011f7243148a8232100afd2289675431ad734604",
+      "sha256": "ff5c0d989fdcb730f96bdcf2af9fe5057cb9fa3c6a7c1fb69a66870f90ba2e6c"
+    },
+    {
+      "path": "results/eval/model_c_seed2_val_s5.csv",
+      "commit": "011f7243148a8232100afd2289675431ad734604",
+      "sha256": "fe07aec01ea1584e113a1403ac26967d7a509f9cbc28ddf2612fefc7c9a31455"
+    },
+    {
+      "path": "results/eval/model_d_seed0_val_s5.json",
+      "commit": "011f7243148a8232100afd2289675431ad734604",
+      "sha256": "dfbbbd0692427e56d6887c82f6252045b839860d17f30b18d4a12f1629f91ae2"
+    },
+    {
+      "path": "results/eval/model_d_seed0_val_s5.csv",
+      "commit": "011f7243148a8232100afd2289675431ad734604",
+      "sha256": "d5ef6f6271acf3bbd673e2621316424ca2f691e77e688d7978a31073249edf07"
+    },
+    {
+      "path": "results/eval/model_d_seed1_val_s5.json",
+      "commit": "011f7243148a8232100afd2289675431ad734604",
+      "sha256": "85f842069d8ae5556f586bf795404365806151d6f8143b5a7e8643c95333767e"
+    },
+    {
+      "path": "results/eval/model_d_seed1_val_s5.csv",
+      "commit": "011f7243148a8232100afd2289675431ad734604",
+      "sha256": "af1592f53859c6e9bad6a122f4ea0fe454cd7329e4a3fe502a6f0a91af2fb368"
+    },
+    {
+      "path": "results/eval/model_d_seed2_val_s5.json",
+      "commit": "011f7243148a8232100afd2289675431ad734604",
+      "sha256": "51839437590a3fdc25bced0829f825b71920b74e91b52c97cb2038ea8e2fe1c9"
+    },
+    {
+      "path": "results/eval/model_d_seed2_val_s5.csv",
+      "commit": "011f7243148a8232100afd2289675431ad734604",
+      "sha256": "bfa14322eaf4059d9c5be4de6a2e9ebef09249f79c1b6b24e9a14b46d62acd91"
+    },
+    {
+      "path": "results/eval/gcn_seed0_val_s5.json",
+      "commit": "011f7243148a8232100afd2289675431ad734604",
+      "sha256": "588ce11c6e86a1d818f4b13df39e633a015559345d23eede22aac5df302dc97e"
+    },
+    {
+      "path": "results/eval/gcn_seed0_val_s5.csv",
+      "commit": "011f7243148a8232100afd2289675431ad734604",
+      "sha256": "8cf21426e3b7c82c94d7882988ed8f7d237e478abcc58361ee2fd6f5e523e9fc"
+    },
+    {
+      "path": "results/eval/gcn_seed1_val_s5.json",
+      "commit": "011f7243148a8232100afd2289675431ad734604",
+      "sha256": "649eaeaaece071fb90638f694b154f760315c8cec7f12a53f7317aa199ae4d66"
+    },
+    {
+      "path": "results/eval/gcn_seed1_val_s5.csv",
+      "commit": "011f7243148a8232100afd2289675431ad734604",
+      "sha256": "815acd5122f5f67a04d3ae602f142d9f05a2270045d2df3ec559bcfee8e8cc61"
+    },
+    {
+      "path": "results/eval/gcn_seed2_val_s5.json",
+      "commit": "011f7243148a8232100afd2289675431ad734604",
+      "sha256": "ccebb9bfb0415c10929f7b46b1ecd8afede9eb2c1c53c16eb57ed3afdccfbbd3"
+    },
+    {
+      "path": "results/eval/gcn_seed2_val_s5.csv",
+      "commit": "011f7243148a8232100afd2289675431ad734604",
+      "sha256": "92217dd8a0abab1c51f67f8e42447ca165c10e843c596f70276d89e9bd72a97c"
+    },
+    {
+      "path": "results/eval/lf_t_val_s5.json",
+      "commit": "011f7243148a8232100afd2289675431ad734604",
+      "sha256": "bd2f84f3a1feadfc9873218dda250c25fd72311b93f7cb6b437f28195b9e8802"
+    },
+    {
+      "path": "results/eval/lf_t_val_s5.csv",
+      "commit": "011f7243148a8232100afd2289675431ad734604",
+      "sha256": "f1cc55c084e4d15a27c455d0d2e682e983ae2b36cb3ae96df97a2f352c791b82"
+    },
+    {
+      "path": "results/eval/laplacian_filter_val_s5.json",
+      "commit": "011f7243148a8232100afd2289675431ad734604",
+      "sha256": "5bda0f4734baa4ed3a4b62a3365a3ae822a51d03b2fb634e4825929084b89d87"
+    },
+    {
+      "path": "results/eval/laplacian_filter_val_s5.csv",
+      "commit": "011f7243148a8232100afd2289675431ad734604",
+      "sha256": "d1d1e39ddb8b85eba50ad12407415363b283107b7818b830be56587952eed414"
+    },
+    {
+      "path": "results/eval/unet_val_s5.json",
+      "commit": "011f7243148a8232100afd2289675431ad734604",
+      "sha256": "9d7912a94803dfbbf0a5efa6cb34937c24d4eb510c4b077e0823ae868bdd7529"
+    },
+    {
+      "path": "results/eval/unet_val_s5.csv",
+      "commit": "011f7243148a8232100afd2289675431ad734604",
+      "sha256": "3a1bab94f7b1eeafb759db63da7caf55074b1b80b1f14ba94c85f0c4302db389"
+    },
+    {
+      "path": "results/eval/model_a_seed0_test_interp_s5.json",
+      "commit": "011f7243148a8232100afd2289675431ad734604",
+      "sha256": "af5dd4925e45194beb81fde7f95684f07e43ed0352ead78059489fd5d6701ef4"
+    },
+    {
+      "path": "results/eval/model_a_seed0_test_interp_s5.csv",
+      "commit": "011f7243148a8232100afd2289675431ad734604",
+      "sha256": "10fdce93c547807ddc1cf140e32d9bc4b9bfee41023e10668d96d641620a029f"
+    },
+    {
+      "path": "results/eval/model_a_seed1_test_interp_s5.json",
+      "commit": "011f7243148a8232100afd2289675431ad734604",
+      "sha256": "9fb315a2460683e08e27d0e5e9699ef1d3cc7cc4816a421df50fbe132d02a045"
+    },
+    {
+      "path": "results/eval/model_a_seed1_test_interp_s5.csv",
+      "commit": "011f7243148a8232100afd2289675431ad734604",
+      "sha256": "108bad1de92c6167dac98e0343d57fd90623acf468767be7c1ff48c882960ed5"
+    },
+    {
+      "path": "results/eval/model_a_seed2_test_interp_s5.json",
+      "commit": "011f7243148a8232100afd2289675431ad734604",
+      "sha256": "6d8bd344086d1e3fb905814d4f634b28b417ab452ea46d1f74aa948103090b38"
+    },
+    {
+      "path": "results/eval/model_a_seed2_test_interp_s5.csv",
+      "commit": "011f7243148a8232100afd2289675431ad734604",
+      "sha256": "dd99ea0efef187e763cdb367b3675f4ee2f150b1e1ea8c45771df3f1c8d1097d"
+    },
+    {
+      "path": "results/eval/model_b_seed0_test_interp_s5.json",
+      "commit": "011f7243148a8232100afd2289675431ad734604",
+      "sha256": "f090f8449ff4a467e22b771f95f4f4513d75cbb47a89a1e1ab8ed5875f64e6fb"
+    },
+    {
+      "path": "results/eval/model_b_seed0_test_interp_s5.csv",
+      "commit": "011f7243148a8232100afd2289675431ad734604",
+      "sha256": "22928fbff5acc5465ac232c1add5193186262691c8e1b07bc539f45ed52d122e"
+    },
+    {
+      "path": "results/eval/model_b_seed1_test_interp_s5.json",
+      "commit": "011f7243148a8232100afd2289675431ad734604",
+      "sha256": "6f59d311797a58aa359ced358f45ff95309e5808e11349abe63271b6821646dd"
+    },
+    {
+      "path": "results/eval/model_b_seed1_test_interp_s5.csv",
+      "commit": "011f7243148a8232100afd2289675431ad734604",
+      "sha256": "6b325339b095cd82ebf6f5545b1fd6989261016135661590d308724bbcefae83"
+    },
+    {
+      "path": "results/eval/model_b_seed2_test_interp_s5.json",
+      "commit": "011f7243148a8232100afd2289675431ad734604",
+      "sha256": "f8a5d1c4260f88c95e99ebf2ee674522248bdb5599443cb48dc395b6000fda60"
+    },
+    {
+      "path": "results/eval/model_b_seed2_test_interp_s5.csv",
+      "commit": "011f7243148a8232100afd2289675431ad734604",
+      "sha256": "7b9fa347530f5d303f0197be742363943c77ec883ac7ddbdc80fca7ecdd8fb86"
+    },
+    {
+      "path": "results/eval/model_c_seed0_test_interp_s5.json",
+      "commit": "011f7243148a8232100afd2289675431ad734604",
+      "sha256": "2353d1ecb2f0f5d491cb706d4c7977cd824506078be1681a0cb37cab2c213e9f"
+    },
+    {
+      "path": "results/eval/model_c_seed0_test_interp_s5.csv",
+      "commit": "011f7243148a8232100afd2289675431ad734604",
+      "sha256": "64de33393579be858c7fde2e9d38f3857f656c602ce15bb439d933152256c5db"
+    },
+    {
+      "path": "results/eval/model_c_seed1_test_interp_s5.json",
+      "commit": "011f7243148a8232100afd2289675431ad734604",
+      "sha256": "8202c38858bf64d3c4894af6312795e20359ba6293dbe9e855fa1f46033015e7"
+    },
+    {
+      "path": "results/eval/model_c_seed1_test_interp_s5.csv",
+      "commit": "011f7243148a8232100afd2289675431ad734604",
+      "sha256": "a0e28692fe5acef61505b09354c144fce6dc52d197470a043551c6ef12c3a24b"
+    },
+    {
+      "path": "results/eval/model_c_seed2_test_interp_s5.json",
+      "commit": "011f7243148a8232100afd2289675431ad734604",
+      "sha256": "eefb6b833e876a8127f4dd036e4b2a170fb96235684e5cb58290b6ed245b8b26"
+    },
+    {
+      "path": "results/eval/model_c_seed2_test_interp_s5.csv",
+      "commit": "011f7243148a8232100afd2289675431ad734604",
+      "sha256": "8f4229fef12cd9a871a1af8556d2a43ba86104e2e99924e421675fec3eafea3c"
+    },
+    {
+      "path": "results/eval/model_d_seed0_test_interp_s5.json",
+      "commit": "011f7243148a8232100afd2289675431ad734604",
+      "sha256": "ac73209515a994c75df0687fe8730b6f2605ee8e6160a83d61d9a85adc87a388"
+    },
+    {
+      "path": "results/eval/model_d_seed0_test_interp_s5.csv",
+      "commit": "011f7243148a8232100afd2289675431ad734604",
+      "sha256": "4fc79e929c3479c32965df3d32975f5a00cbff638708d4341d3bb6c2021e39dc"
+    },
+    {
+      "path": "results/eval/model_d_seed1_test_interp_s5.json",
+      "commit": "011f7243148a8232100afd2289675431ad734604",
+      "sha256": "1b988a4752c10b4a64135618e34faa302f70272119d696a5ffb35c1d34a164eb"
+    },
+    {
+      "path": "results/eval/model_d_seed1_test_interp_s5.csv",
+      "commit": "011f7243148a8232100afd2289675431ad734604",
+      "sha256": "da0b95ae486546ce84775eea339b48b00a93bbf508d836150ccf760b4b043ed6"
+    },
+    {
+      "path": "results/eval/model_d_seed2_test_interp_s5.json",
+      "commit": "011f7243148a8232100afd2289675431ad734604",
+      "sha256": "022446b884700c020754569c45151c59d1379125b5c24ba4daeceea97785c8eb"
+    },
+    {
+      "path": "results/eval/model_d_seed2_test_interp_s5.csv",
+      "commit": "011f7243148a8232100afd2289675431ad734604",
+      "sha256": "69c15cff651c62a0359038a079a8e1d4f3a2448b75a12d14ee1347b784012fa8"
+    },
+    {
+      "path": "results/eval/gcn_seed0_test_interp_s5.json",
+      "commit": "011f7243148a8232100afd2289675431ad734604",
+      "sha256": "eeb532078d61231079abdf5230a0d193b1a1d5b66f2284830d2f3c6ce20d06a5"
+    },
+    {
+      "path": "results/eval/gcn_seed0_test_interp_s5.csv",
+      "commit": "011f7243148a8232100afd2289675431ad734604",
+      "sha256": "ad6d7c6993878c1c775071a1d93c47757f2271fb5c5bebdab05856d06471ac73"
+    },
+    {
+      "path": "results/eval/gcn_seed1_test_interp_s5.json",
+      "commit": "011f7243148a8232100afd2289675431ad734604",
+      "sha256": "ee6b854d1dcf6d027b4479fde5bf16680d12bd6a1b3ec93fdcd75950cf430875"
+    },
+    {
+      "path": "results/eval/gcn_seed1_test_interp_s5.csv",
+      "commit": "011f7243148a8232100afd2289675431ad734604",
+      "sha256": "f40abc0712f746b7931c526616e1a91f0fa03c4ad39a04d416902b5dcc6bcc2f"
+    },
+    {
+      "path": "results/eval/gcn_seed2_test_interp_s5.json",
+      "commit": "011f7243148a8232100afd2289675431ad734604",
+      "sha256": "3f2a3482355538e94b1d8e7fad5ea48d2f485c00213bfa626bee0db7d2fbfc0a"
+    },
+    {
+      "path": "results/eval/gcn_seed2_test_interp_s5.csv",
+      "commit": "011f7243148a8232100afd2289675431ad734604",
+      "sha256": "79a608eb304c1488d38a5696c6f4ef8b232a6a0dd89f77593228cd505a106267"
+    },
+    {
+      "path": "results/eval/lf_t_test_interp_s5.json",
+      "commit": "011f7243148a8232100afd2289675431ad734604",
+      "sha256": "07531e600ba6f69ae098b38fdf52028c1d8dcf157dcd27a2c9a8cdc8013a931e"
+    },
+    {
+      "path": "results/eval/lf_t_test_interp_s5.csv",
+      "commit": "011f7243148a8232100afd2289675431ad734604",
+      "sha256": "f9c68c2505ffc15cb626b741ecda0b39e4ee28c6ab7f736f0fb25aef3149ebd9"
+    },
+    {
+      "path": "results/eval/laplacian_filter_test_interp_s5.json",
+      "commit": "011f7243148a8232100afd2289675431ad734604",
+      "sha256": "76693129ff717465cfac44ea66813aa0babd630d91d2332398a21e0121e88b6e"
+    },
+    {
+      "path": "results/eval/laplacian_filter_test_interp_s5.csv",
+      "commit": "011f7243148a8232100afd2289675431ad734604",
+      "sha256": "14134b6398619d2eb72aca3b4e64eca9cd46a16a3460107953023b5e2bc4b491"
+    },
+    {
+      "path": "results/eval/unet_test_interp_s5.json",
+      "commit": "011f7243148a8232100afd2289675431ad734604",
+      "sha256": "949ade5366771d097065598aa66ad084e1f524d9d86358197663aaeafe2451de"
+    },
+    {
+      "path": "results/eval/unet_test_interp_s5.csv",
+      "commit": "011f7243148a8232100afd2289675431ad734604",
+      "sha256": "c3ee13ee8679a62d4e6a138c7863243012581341bc1910072a6a3562a07806f2"
+    },
+    {
+      "path": "results/eval/model_a_seed0_test_interp_seed1_s5.json",
+      "commit": "011f7243148a8232100afd2289675431ad734604",
+      "sha256": "5a6b782edda0a37cbe84a7714222f22147a7bd175f80a8679b9ecea7645331b0"
+    },
+    {
+      "path": "results/eval/model_a_seed0_test_interp_seed1_s5.csv",
+      "commit": "011f7243148a8232100afd2289675431ad734604",
+      "sha256": "c5a208e5cf3c36111f6f4ccf013792a8afd48b70b07e496f3b2944b7e411805b"
+    },
+    {
+      "path": "results/eval/model_a_seed1_test_interp_seed1_s5.json",
+      "commit": "011f7243148a8232100afd2289675431ad734604",
+      "sha256": "39697bb02b5fb2dc43aeffde587d6eb6b19ba288b734598021126fc1a922414b"
+    },
+    {
+      "path": "results/eval/model_a_seed1_test_interp_seed1_s5.csv",
+      "commit": "011f7243148a8232100afd2289675431ad734604",
+      "sha256": "526f299bc7f9151550f1367afe2ca7f4a04f0d171a441a2c7104d0f64c00850e"
+    },
+    {
+      "path": "results/eval/model_a_seed2_test_interp_seed1_s5.json",
+      "commit": "011f7243148a8232100afd2289675431ad734604",
+      "sha256": "31626a35f6a6d5613e7d3afdad69527d269f90b40050895089aa0064874901e1"
+    },
+    {
+      "path": "results/eval/model_a_seed2_test_interp_seed1_s5.csv",
+      "commit": "011f7243148a8232100afd2289675431ad734604",
+      "sha256": "78eb1165d861b4cbac4060fe5628513f6d42fe6aef9ff8dac63e005dd52f19d6"
+    },
+    {
+      "path": "results/eval/model_b_seed0_test_interp_seed1_s5.json",
+      "commit": "011f7243148a8232100afd2289675431ad734604",
+      "sha256": "f41851f12bc7df37a65a62cc99754ead5f39621d53365162c4b6d4e368b2c7b4"
+    },
+    {
+      "path": "results/eval/model_b_seed0_test_interp_seed1_s5.csv",
+      "commit": "011f7243148a8232100afd2289675431ad734604",
+      "sha256": "bbcb5d8a650154b5b28e81824df479def8bbd48c0fc72c50bb51b77d3c4b0adb"
+    },
+    {
+      "path": "results/eval/model_b_seed1_test_interp_seed1_s5.json",
+      "commit": "011f7243148a8232100afd2289675431ad734604",
+      "sha256": "161ece26ae00b2fed2b0a14518dba99e3d486227b3a5bfb4d5860b5d09e6ca89"
+    },
+    {
+      "path": "results/eval/model_b_seed1_test_interp_seed1_s5.csv",
+      "commit": "011f7243148a8232100afd2289675431ad734604",
+      "sha256": "680bcd7fa5a0f2ef94d13f4559eb433ac7b35318af5a623a097380eb4ca300c9"
+    },
+    {
+      "path": "results/eval/model_b_seed2_test_interp_seed1_s5.json",
+      "commit": "011f7243148a8232100afd2289675431ad734604",
+      "sha256": "f9776a441f80826b3fc3b1e13f6069e476fc381e2ce36b4e02171f949a6ab6a5"
+    },
+    {
+      "path": "results/eval/model_b_seed2_test_interp_seed1_s5.csv",
+      "commit": "011f7243148a8232100afd2289675431ad734604",
+      "sha256": "ee7597e97e276d914f9f7920263362a4b7e41fd503ab27ec462f87a4d53817d4"
+    },
+    {
+      "path": "results/eval/model_c_seed0_test_interp_seed1_s5.json",
+      "commit": "011f7243148a8232100afd2289675431ad734604",
+      "sha256": "83e15312ef6d48a609905b6f56faa23ad91dc06448f2cbf1bc1c4b8d3da48918"
+    },
+    {
+      "path": "results/eval/model_c_seed0_test_interp_seed1_s5.csv",
+      "commit": "011f7243148a8232100afd2289675431ad734604",
+      "sha256": "a2e1bdcd55bd05cbdc590e79b68d15b7b4a9dc490dd83a22b535046ee22dd2e3"
+    },
+    {
+      "path": "results/eval/model_c_seed1_test_interp_seed1_s5.json",
+      "commit": "011f7243148a8232100afd2289675431ad734604",
+      "sha256": "de18c1430d09c47a7867cac6a439e27e8fa6f0dfd475f2847a52c46e9efaf3a7"
+    },
+    {
+      "path": "results/eval/model_c_seed1_test_interp_seed1_s5.csv",
+      "commit": "011f7243148a8232100afd2289675431ad734604",
+      "sha256": "119398b482b9f23ca9c8d00347b2ace4691894f7dba0dbf2346f580b4564b3b7"
+    },
+    {
+      "path": "results/eval/model_c_seed2_test_interp_seed1_s5.json",
+      "commit": "011f7243148a8232100afd2289675431ad734604",
+      "sha256": "ba874dadb9e68aa5ff0c16ef45021536eb693b96aa0e9bbe431f690653b01886"
+    },
+    {
+      "path": "results/eval/model_c_seed2_test_interp_seed1_s5.csv",
+      "commit": "011f7243148a8232100afd2289675431ad734604",
+      "sha256": "3872eb4ed14163a2d6429302b82ae5b30f4d29240bf1f2c913644209295ce3ac"
+    },
+    {
+      "path": "results/eval/model_d_seed0_test_interp_seed1_s5.json",
+      "commit": "011f7243148a8232100afd2289675431ad734604",
+      "sha256": "ada9dce2b2d981a56cc851f7f13b077a0f12c35d809bd7470d06e62851cc6767"
+    },
+    {
+      "path": "results/eval/model_d_seed0_test_interp_seed1_s5.csv",
+      "commit": "011f7243148a8232100afd2289675431ad734604",
+      "sha256": "ae76c38a2a10735b0fcd8d7c7ef4b605209482e98979a92065e377e3a56502a5"
+    },
+    {
+      "path": "results/eval/model_d_seed1_test_interp_seed1_s5.json",
+      "commit": "011f7243148a8232100afd2289675431ad734604",
+      "sha256": "fb9af25a8ea85bbb71988b4088bca7ca1b59a3c6dfbee4670bcc87cf09bf218b"
+    },
+    {
+      "path": "results/eval/model_d_seed1_test_interp_seed1_s5.csv",
+      "commit": "011f7243148a8232100afd2289675431ad734604",
+      "sha256": "00da926b35555f0d42c1ee67aab5b6fa45fd533685434a707b99c8d5d11d419f"
+    },
+    {
+      "path": "results/eval/model_d_seed2_test_interp_seed1_s5.json",
+      "commit": "011f7243148a8232100afd2289675431ad734604",
+      "sha256": "0c67a1ced4479be9d1954e5c112e2bc47a3550bbc8bb6b589f38cf20075f7053"
+    },
+    {
+      "path": "results/eval/model_d_seed2_test_interp_seed1_s5.csv",
+      "commit": "011f7243148a8232100afd2289675431ad734604",
+      "sha256": "6019f5366e52960f2dfe0b743aa8fb33cdc8f1473ad0abf9dbdba50bf2fdaa7e"
+    },
+    {
+      "path": "results/eval/gcn_seed0_test_interp_seed1_s5.json",
+      "commit": "011f7243148a8232100afd2289675431ad734604",
+      "sha256": "08f09196b4a0a2ee74c03ea4078a21d611213d37239d1f3f009f1d06072309ab"
+    },
+    {
+      "path": "results/eval/gcn_seed0_test_interp_seed1_s5.csv",
+      "commit": "011f7243148a8232100afd2289675431ad734604",
+      "sha256": "26c2aa930f3566fec88ed1a07d06a7fa7c76a21d56c55532da3ad001c5318495"
+    },
+    {
+      "path": "results/eval/gcn_seed1_test_interp_seed1_s5.json",
+      "commit": "011f7243148a8232100afd2289675431ad734604",
+      "sha256": "6c8d086e9026bc18b65f83aa399e4b3b1fd1695558b1bb5c308be6e37a91d43f"
+    },
+    {
+      "path": "results/eval/gcn_seed1_test_interp_seed1_s5.csv",
+      "commit": "011f7243148a8232100afd2289675431ad734604",
+      "sha256": "7ba7f706ebc5b1150c592b63bf7d5a8c649c30a922e9be9400b9b9a1ac632c72"
+    },
+    {
+      "path": "results/eval/gcn_seed2_test_interp_seed1_s5.json",
+      "commit": "011f7243148a8232100afd2289675431ad734604",
+      "sha256": "b293f390ddee15e402d8a20ba83612b6b54c48bae436172d27808ad95ebac2ca"
+    },
+    {
+      "path": "results/eval/gcn_seed2_test_interp_seed1_s5.csv",
+      "commit": "011f7243148a8232100afd2289675431ad734604",
+      "sha256": "6421a4365ed205f9851b7dc3056f4c3d012eb5bdcb66d9ba33b66e159f107cfe"
+    },
+    {
+      "path": "results/eval/lf_t_test_interp_seed1_s5.json",
+      "commit": "011f7243148a8232100afd2289675431ad734604",
+      "sha256": "190bd5518c4cfb5a2bba25b7a81bb3c59643a75be28e14a0d1bdf3ec07d33cee"
+    },
+    {
+      "path": "results/eval/lf_t_test_interp_seed1_s5.csv",
+      "commit": "011f7243148a8232100afd2289675431ad734604",
+      "sha256": "fb1fb7e90cebac267760e5d61743087ebc600e24fd5c40c8b8a5dd919bd620d2"
+    },
+    {
+      "path": "results/eval/laplacian_filter_test_interp_seed1_s5.json",
+      "commit": "011f7243148a8232100afd2289675431ad734604",
+      "sha256": "506a262df3c146b7cec0ade85e091a321ac5c040e8d1a7477b676436a943dfde"
+    },
+    {
+      "path": "results/eval/laplacian_filter_test_interp_seed1_s5.csv",
+      "commit": "011f7243148a8232100afd2289675431ad734604",
+      "sha256": "1349b10a8c1350adf1f4c69079c00b6d88b23bc30389932f60b8826a37244f4d"
+    },
+    {
+      "path": "results/eval/unet_test_interp_seed1_s5.json",
+      "commit": "011f7243148a8232100afd2289675431ad734604",
+      "sha256": "150da14679642d0611fdbeb48be55458e065e281533e1414650885e905d53820"
+    },
+    {
+      "path": "results/eval/unet_test_interp_seed1_s5.csv",
+      "commit": "011f7243148a8232100afd2289675431ad734604",
+      "sha256": "9431482b446e71533c9fb69dd97ac7af76d28850d8bc56d552f8fc6be5cbb4b9"
+    },
+    {
+      "path": "results/eval/model_a_seed0_test_extrap_s5.json",
+      "commit": "011f7243148a8232100afd2289675431ad734604",
+      "sha256": "cfc1c320bfc01d22c67cb8feb3788975ceda62f0e5b8e39e87abd51156870547"
+    },
+    {
+      "path": "results/eval/model_a_seed0_test_extrap_s5.csv",
+      "commit": "011f7243148a8232100afd2289675431ad734604",
+      "sha256": "89a42e2018fa415852e1bf71245d85c460e2eb2cf608b7866354278196e1f4d9"
+    },
+    {
+      "path": "results/eval/model_a_seed1_test_extrap_s5.json",
+      "commit": "011f7243148a8232100afd2289675431ad734604",
+      "sha256": "68fe0243fc6b3d536297a5236d44d49611cde2f75a4da194c7b3a0221fb30a6c"
+    },
+    {
+      "path": "results/eval/model_a_seed1_test_extrap_s5.csv",
+      "commit": "011f7243148a8232100afd2289675431ad734604",
+      "sha256": "128c4b3a063879743b5547bb575c47adb6120c400d8770363aece857a703f470"
+    },
+    {
+      "path": "results/eval/model_a_seed2_test_extrap_s5.json",
+      "commit": "011f7243148a8232100afd2289675431ad734604",
+      "sha256": "360a090bbc037530056b00bc2169efbe4a236ac804eae9c2cd0bab46cf15267f"
+    },
+    {
+      "path": "results/eval/model_a_seed2_test_extrap_s5.csv",
+      "commit": "011f7243148a8232100afd2289675431ad734604",
+      "sha256": "c229bdd43a48d3f55bcb97c6bf416cd0b437e425bcd923b437e192315d90f3d9"
+    },
+    {
+      "path": "results/eval/model_b_seed0_test_extrap_s5.json",
+      "commit": "011f7243148a8232100afd2289675431ad734604",
+      "sha256": "78f8d83ebddbba104de323ce3f390dcc66a5520ab1043f07fd7450353fc93e5f"
+    },
+    {
+      "path": "results/eval/model_b_seed0_test_extrap_s5.csv",
+      "commit": "011f7243148a8232100afd2289675431ad734604",
+      "sha256": "45d1dba9faf8bcd2a5917a440e8b39d0b49b0956273a6b37ef38f7e0d9da79a1"
+    },
+    {
+      "path": "results/eval/model_b_seed1_test_extrap_s5.json",
+      "commit": "011f7243148a8232100afd2289675431ad734604",
+      "sha256": "c84f7f5654dddabed669ff29a3cffceaff9b6352966413412fca7513a2c90e95"
+    },
+    {
+      "path": "results/eval/model_b_seed1_test_extrap_s5.csv",
+      "commit": "011f7243148a8232100afd2289675431ad734604",
+      "sha256": "ecba05783e92dd8dfef3cb5aef0773196941ea7a42abb8132413f110489573f1"
+    },
+    {
+      "path": "results/eval/model_b_seed2_test_extrap_s5.json",
+      "commit": "011f7243148a8232100afd2289675431ad734604",
+      "sha256": "4eada9d7a3e9671a6dd7de2dd5bc5d3fc4369f17e6affa295e7688ec9ad2325f"
+    },
+    {
+      "path": "results/eval/model_b_seed2_test_extrap_s5.csv",
+      "commit": "011f7243148a8232100afd2289675431ad734604",
+      "sha256": "e4598487e2034374ef506d53199bd293caca5202bfd1ac94d944017106e18cbe"
+    },
+    {
+      "path": "results/eval/model_c_seed0_test_extrap_s5.json",
+      "commit": "011f7243148a8232100afd2289675431ad734604",
+      "sha256": "644e144755085c9d814ef14f2a4c203c5008d44d8bd11da4eaef636df8e4f677"
+    },
+    {
+      "path": "results/eval/model_c_seed0_test_extrap_s5.csv",
+      "commit": "011f7243148a8232100afd2289675431ad734604",
+      "sha256": "6cb6a1324908de36f4e4aa858c02536573fd400af96145b070cd32b4bad8d2d7"
+    },
+    {
+      "path": "results/eval/model_c_seed1_test_extrap_s5.json",
+      "commit": "011f7243148a8232100afd2289675431ad734604",
+      "sha256": "7a62372121492453a33ade8f08aa7f2e7832e17347a5c377e5fb5153789ffb1b"
+    },
+    {
+      "path": "results/eval/model_c_seed1_test_extrap_s5.csv",
+      "commit": "011f7243148a8232100afd2289675431ad734604",
+      "sha256": "028bc0ca944d56dda3f987afd0345f3ca11ac5c6f29c28a33f5a6485d6b82474"
+    },
+    {
+      "path": "results/eval/model_c_seed2_test_extrap_s5.json",
+      "commit": "011f7243148a8232100afd2289675431ad734604",
+      "sha256": "ca1668eb4ea32c4171118ea2d81475911bc619fbbc9d7efe4243d4232619abf4"
+    },
+    {
+      "path": "results/eval/model_c_seed2_test_extrap_s5.csv",
+      "commit": "011f7243148a8232100afd2289675431ad734604",
+      "sha256": "329332fd250b0859e4d9419e8540b4212092d0e07e6fd47dab86ecd3977b8ed2"
+    },
+    {
+      "path": "results/eval/model_d_seed0_test_extrap_s5.json",
+      "commit": "011f7243148a8232100afd2289675431ad734604",
+      "sha256": "b52790e4f849779e140452c3174bbc89cb5cda71ba82e02b95acc044ac974c29"
+    },
+    {
+      "path": "results/eval/model_d_seed0_test_extrap_s5.csv",
+      "commit": "011f7243148a8232100afd2289675431ad734604",
+      "sha256": "ee9a88054bdf286e01e7ffff2dda62759d56243d42ac655776db1d587ee4eaaf"
+    },
+    {
+      "path": "results/eval/model_d_seed1_test_extrap_s5.json",
+      "commit": "011f7243148a8232100afd2289675431ad734604",
+      "sha256": "17d39c6bfcaded791f2a09a4f32e57a09868c82ae0be9a8b452e460df96a592a"
+    },
+    {
+      "path": "results/eval/model_d_seed1_test_extrap_s5.csv",
+      "commit": "011f7243148a8232100afd2289675431ad734604",
+      "sha256": "9ee17d77f38ab43c5859a927e914c43331e90b2811d1e435d660ed54708616c4"
+    },
+    {
+      "path": "results/eval/model_d_seed2_test_extrap_s5.json",
+      "commit": "011f7243148a8232100afd2289675431ad734604",
+      "sha256": "0ee197f32e192915dbc9971f81e910f5713eae2fd1680af348ad5a97aca162f1"
+    },
+    {
+      "path": "results/eval/model_d_seed2_test_extrap_s5.csv",
+      "commit": "011f7243148a8232100afd2289675431ad734604",
+      "sha256": "2192dd06eed9fb096d938267de1390f8d29143297aa674de0891035a99f82ddc"
+    },
+    {
+      "path": "results/eval/gcn_seed0_test_extrap_s5.json",
+      "commit": "011f7243148a8232100afd2289675431ad734604",
+      "sha256": "b560b0c820b1efd3d53f7b17e48cf1ec7ef7c3524e5a1612e03bfd4b426c6c57"
+    },
+    {
+      "path": "results/eval/gcn_seed0_test_extrap_s5.csv",
+      "commit": "011f7243148a8232100afd2289675431ad734604",
+      "sha256": "6dd4e6d1a82271adf344944040485ab42ac9caf8a1e0b3401f586a976cf2148e"
+    },
+    {
+      "path": "results/eval/gcn_seed1_test_extrap_s5.json",
+      "commit": "011f7243148a8232100afd2289675431ad734604",
+      "sha256": "ca88dd5a0aa66cc5067619608263a958fd4b99ebfb118c569ef8346b1b9abaa7"
+    },
+    {
+      "path": "results/eval/gcn_seed1_test_extrap_s5.csv",
+      "commit": "011f7243148a8232100afd2289675431ad734604",
+      "sha256": "23496439992f8cff8e56ec0d7a2ee9c39867820866093e2c5e9b50086b0765f5"
+    },
+    {
+      "path": "results/eval/gcn_seed2_test_extrap_s5.json",
+      "commit": "011f7243148a8232100afd2289675431ad734604",
+      "sha256": "74de5ff9cbe617437b94894d31b545d30490ad480257117193ca7aca5e08d048"
+    },
+    {
+      "path": "results/eval/gcn_seed2_test_extrap_s5.csv",
+      "commit": "011f7243148a8232100afd2289675431ad734604",
+      "sha256": "aafc69aa65f6e076c68e14c48c31e62218babd741d5037d3c1dbb330fdf87e75"
+    },
+    {
+      "path": "results/eval/lf_t_test_extrap_s5.json",
+      "commit": "011f7243148a8232100afd2289675431ad734604",
+      "sha256": "03923f28ba776a24d47be8d466655ad587e64ff697aa6401864a3d8d382843a2"
+    },
+    {
+      "path": "results/eval/lf_t_test_extrap_s5.csv",
+      "commit": "011f7243148a8232100afd2289675431ad734604",
+      "sha256": "430220e8256b63d99b49502b845c4feb04d5253d304b684f1c14bccd95f19d1a"
+    },
+    {
+      "path": "results/eval/laplacian_filter_test_extrap_s5.json",
+      "commit": "011f7243148a8232100afd2289675431ad734604",
+      "sha256": "fbe59271be47708e355661c6bf0bff6259498f817a172740ffebd2f73115c34c"
+    },
+    {
+      "path": "results/eval/laplacian_filter_test_extrap_s5.csv",
+      "commit": "011f7243148a8232100afd2289675431ad734604",
+      "sha256": "e8087331028164690ab3a362229e7ca90bf5d7e4099bebaa97ed86ee61476fc9"
+    },
+    {
+      "path": "results/eval/unet_test_extrap_s5.json",
+      "commit": "011f7243148a8232100afd2289675431ad734604",
+      "sha256": "75ce5c61efd34b7f83dd82e4f5bbac0030538e46633b6c4df624cdae74356c92"
+    },
+    {
+      "path": "results/eval/unet_test_extrap_s5.csv",
+      "commit": "011f7243148a8232100afd2289675431ad734604",
+      "sha256": "c140d807cb51dba8424f11c62803095f2e64f1445fc724dd296329cdc4e66f82"
+    },
+    {
+      "path": "results/eval/model_a_seed0_test_path_s5.json",
+      "commit": "011f7243148a8232100afd2289675431ad734604",
+      "sha256": "619262dfd02fddc3819430b624e24223174aa2d38dd8f433d63f15d5227c092e"
+    },
+    {
+      "path": "results/eval/model_a_seed0_test_path_s5.csv",
+      "commit": "011f7243148a8232100afd2289675431ad734604",
+      "sha256": "a5d1b68fdb736548aff1ca0aeb49c2eda90d19bcaa393b2a076ce6c92b305855"
+    },
+    {
+      "path": "results/eval/model_a_seed1_test_path_s5.json",
+      "commit": "011f7243148a8232100afd2289675431ad734604",
+      "sha256": "38ba65e1815342a88da9fa5e72d01a36f1da2849fdf5ec52ff0a8e2d9e3ae3d0"
+    },
+    {
+      "path": "results/eval/model_a_seed1_test_path_s5.csv",
+      "commit": "011f7243148a8232100afd2289675431ad734604",
+      "sha256": "a2345a2ffab85f031f332bcdd7de7135ba407b0c8ce8868ddcd443a089448997"
+    },
+    {
+      "path": "results/eval/model_a_seed2_test_path_s5.json",
+      "commit": "011f7243148a8232100afd2289675431ad734604",
+      "sha256": "e2cd9b3e219c726c9e0d570d90836faeac420f1a6f78866be12f60b43b853808"
+    },
+    {
+      "path": "results/eval/model_a_seed2_test_path_s5.csv",
+      "commit": "011f7243148a8232100afd2289675431ad734604",
+      "sha256": "0eda4d8eb9e1838d474b590e846a1253c9213e5c0adfcad5027832db90bab869"
+    },
+    {
+      "path": "results/eval/model_b_seed0_test_path_s5.json",
+      "commit": "011f7243148a8232100afd2289675431ad734604",
+      "sha256": "38c6753a16c30e0f5fd50ee7f41d0c66c8b2ac661486b11fd1b3b8ee65d50f4e"
+    },
+    {
+      "path": "results/eval/model_b_seed0_test_path_s5.csv",
+      "commit": "011f7243148a8232100afd2289675431ad734604",
+      "sha256": "fed959946055e3fd4fbcd5036c39e27f8b51c52a75ff63eb39837390c241b481"
+    },
+    {
+      "path": "results/eval/model_b_seed1_test_path_s5.json",
+      "commit": "011f7243148a8232100afd2289675431ad734604",
+      "sha256": "ddb55afe574cc8adc0edd06491246170a18b9885a85243aaa2ca69356a313cff"
+    },
+    {
+      "path": "results/eval/model_b_seed1_test_path_s5.csv",
+      "commit": "011f7243148a8232100afd2289675431ad734604",
+      "sha256": "3f94ba096e241384c2e9993f097222e0425ddba11a571b90701b9103b3e33fb5"
+    },
+    {
+      "path": "results/eval/model_b_seed2_test_path_s5.json",
+      "commit": "011f7243148a8232100afd2289675431ad734604",
+      "sha256": "c688281f58552b08e1ff8365cbc925b5a3e824844d491e187259b9228463f931"
+    },
+    {
+      "path": "results/eval/model_b_seed2_test_path_s5.csv",
+      "commit": "011f7243148a8232100afd2289675431ad734604",
+      "sha256": "14f34fe9dd7aeb9be13945da4d8f0195505f181ae7d851081fdd309fb3809cdd"
+    },
+    {
+      "path": "results/eval/model_c_seed0_test_path_s5.json",
+      "commit": "011f7243148a8232100afd2289675431ad734604",
+      "sha256": "2087915073e346164f6d691611084ca930dfa7939b04050b18809111e3f70b04"
+    },
+    {
+      "path": "results/eval/model_c_seed0_test_path_s5.csv",
+      "commit": "011f7243148a8232100afd2289675431ad734604",
+      "sha256": "3753d0a2abb6131d944d6d0f3930327adc8f5937346792d05fa0615422da85e0"
+    },
+    {
+      "path": "results/eval/model_c_seed1_test_path_s5.json",
+      "commit": "011f7243148a8232100afd2289675431ad734604",
+      "sha256": "17d1aae69acbae0f030d0655c413897e12f84c27b8cd531ffc04bc0067059527"
+    },
+    {
+      "path": "results/eval/model_c_seed1_test_path_s5.csv",
+      "commit": "011f7243148a8232100afd2289675431ad734604",
+      "sha256": "5ecfb4e2e52ab44fa37c6a3933953fc6a4ce288efc036f4b1018daeca475586c"
+    },
+    {
+      "path": "results/eval/model_c_seed2_test_path_s5.json",
+      "commit": "011f7243148a8232100afd2289675431ad734604",
+      "sha256": "64ef0e44b7fdac1b84050204ef82083a527b92d6870a06e2f26902b81d6e25f9"
+    },
+    {
+      "path": "results/eval/model_c_seed2_test_path_s5.csv",
+      "commit": "011f7243148a8232100afd2289675431ad734604",
+      "sha256": "ebea903a4c86b61e8d9e1ecfdc86d6be428b7298a712a7f73b1b785807fa9a75"
+    },
+    {
+      "path": "results/eval/model_d_seed0_test_path_s5.json",
+      "commit": "011f7243148a8232100afd2289675431ad734604",
+      "sha256": "88c814079ed16dc095d46cf6e324be2f17da806c04d93ac6f4c02fb94227fa4b"
+    },
+    {
+      "path": "results/eval/model_d_seed0_test_path_s5.csv",
+      "commit": "011f7243148a8232100afd2289675431ad734604",
+      "sha256": "68be6a520bb56048f5682408dd2daae6e204d9cda8367278381eb6b211966cc0"
+    },
+    {
+      "path": "results/eval/model_d_seed1_test_path_s5.json",
+      "commit": "011f7243148a8232100afd2289675431ad734604",
+      "sha256": "728d6ca0fc3f6d61edbbdcf6149a57840df5dc61d26cfce38e3083328a1e5238"
+    },
+    {
+      "path": "results/eval/model_d_seed1_test_path_s5.csv",
+      "commit": "011f7243148a8232100afd2289675431ad734604",
+      "sha256": "d89ea3e187a70d01b920a4300160cce80aacd062f09ac5e0cf307ccc4d355d5d"
+    },
+    {
+      "path": "results/eval/model_d_seed2_test_path_s5.json",
+      "commit": "011f7243148a8232100afd2289675431ad734604",
+      "sha256": "7c44d3bb6d0c3a986680d89a493848267017760abfc239612a93869f312df91f"
+    },
+    {
+      "path": "results/eval/model_d_seed2_test_path_s5.csv",
+      "commit": "011f7243148a8232100afd2289675431ad734604",
+      "sha256": "191f23c192bbea9fd86104c313fa4914569f088b673e0c8451eead1a67d5a484"
+    },
+    {
+      "path": "results/eval/gcn_seed0_test_path_s5.json",
+      "commit": "011f7243148a8232100afd2289675431ad734604",
+      "sha256": "9e100f2f34594a095ecaf5ae468a15addaac36f31d802e00ee581420370374c4"
+    },
+    {
+      "path": "results/eval/gcn_seed0_test_path_s5.csv",
+      "commit": "011f7243148a8232100afd2289675431ad734604",
+      "sha256": "7ebc15786f1b4aaf5f1935ceb3b1be1ccf25802863a523527aa2ab25a7821762"
+    },
+    {
+      "path": "results/eval/gcn_seed1_test_path_s5.json",
+      "commit": "011f7243148a8232100afd2289675431ad734604",
+      "sha256": "248e71c2890cbb1d9200e218f0732277c2fa84b9274095f5880deab092bb0260"
+    },
+    {
+      "path": "results/eval/gcn_seed1_test_path_s5.csv",
+      "commit": "011f7243148a8232100afd2289675431ad734604",
+      "sha256": "d6a403c2ed381c4325eb67d498a9ad46372aae296fc89fec4ce77b788f535670"
+    },
+    {
+      "path": "results/eval/gcn_seed2_test_path_s5.json",
+      "commit": "011f7243148a8232100afd2289675431ad734604",
+      "sha256": "14a23e3535b119769a7f869ed29bebed69103b5740c5302d9ba623dcab66079d"
+    },
+    {
+      "path": "results/eval/gcn_seed2_test_path_s5.csv",
+      "commit": "011f7243148a8232100afd2289675431ad734604",
+      "sha256": "a2fdfd9928ebf96df4a30fb9a2ac5f53810064f2d2d6ce3d06b9c1abb480db99"
+    },
+    {
+      "path": "results/eval/lf_t_test_path_s5.json",
+      "commit": "011f7243148a8232100afd2289675431ad734604",
+      "sha256": "f71ae2bb96b444b27b95a39e82a475f3d560d90ea7876c9b50a75855722b508b"
+    },
+    {
+      "path": "results/eval/lf_t_test_path_s5.csv",
+      "commit": "011f7243148a8232100afd2289675431ad734604",
+      "sha256": "b8630bdebd75f8bc6c7decb85527c7bebb6b87e1b403b15d1d09ec1f9179ccde"
+    },
+    {
+      "path": "results/eval/laplacian_filter_test_path_s5.json",
+      "commit": "011f7243148a8232100afd2289675431ad734604",
+      "sha256": "60212592c9bf9381e87f181858dafadc8e5435e790624a1c860d7be184f49f3d"
+    },
+    {
+      "path": "results/eval/laplacian_filter_test_path_s5.csv",
+      "commit": "011f7243148a8232100afd2289675431ad734604",
+      "sha256": "505c1a698c2d115c05d374609f77d99e9b6d3326746529b6099cf93829c81451"
+    },
+    {
+      "path": "results/eval/unet_test_path_s5.json",
+      "commit": "011f7243148a8232100afd2289675431ad734604",
+      "sha256": "49bb96744e267eecf72c556a2640e56fd0226ae99b89aec13a082ef7e032e89f"
+    },
+    {
+      "path": "results/eval/unet_test_path_s5.csv",
+      "commit": "011f7243148a8232100afd2289675431ad734604",
+      "sha256": "beef91ee4eac0a510b5a8571c9d38736cb7dc70e2256d00bf0142647c32db1cd"
+    },
+    {
+      "path": "results/eval/model_a_seed0_test_fine_s5.json",
+      "commit": "011f7243148a8232100afd2289675431ad734604",
+      "sha256": "e1452891c53c9d76d10d46bfb0e8a54ef4a75c709d5c784141bd68ecc7370679"
+    },
+    {
+      "path": "results/eval/model_a_seed0_test_fine_s5.csv",
+      "commit": "011f7243148a8232100afd2289675431ad734604",
+      "sha256": "224f4b8330182ada642e217f6ecc282f0e28d3e2eaa1865a1f0520a9f9bb9d22"
+    },
+    {
+      "path": "results/eval/model_a_seed1_test_fine_s5.json",
+      "commit": "011f7243148a8232100afd2289675431ad734604",
+      "sha256": "d772b37467a85b3bc5baff379959ed5d574df644289ae40e81fa72db64b0d478"
+    },
+    {
+      "path": "results/eval/model_a_seed1_test_fine_s5.csv",
+      "commit": "011f7243148a8232100afd2289675431ad734604",
+      "sha256": "21277c4f88f006328794f2afcd40d7dd19304ddbfc3ebac4493c64aaebf58637"
+    },
+    {
+      "path": "results/eval/model_a_seed2_test_fine_s5.json",
+      "commit": "011f7243148a8232100afd2289675431ad734604",
+      "sha256": "4e05b8fde136e4b8e25d5e730624bafae530fb30ad913fd6ea44d3972f0587d5"
+    },
+    {
+      "path": "results/eval/model_a_seed2_test_fine_s5.csv",
+      "commit": "011f7243148a8232100afd2289675431ad734604",
+      "sha256": "9571c39c201565f1e12aa8948a3bbcf46b83bd80daec7a92fb7dcb87c4e6acd4"
+    },
+    {
+      "path": "results/eval/model_b_seed0_test_fine_s5.json",
+      "commit": "011f7243148a8232100afd2289675431ad734604",
+      "sha256": "e7a290df730ca57bacd6c97409867a9592b98f0cec92e44f782f25f7df6715fd"
+    },
+    {
+      "path": "results/eval/model_b_seed0_test_fine_s5.csv",
+      "commit": "011f7243148a8232100afd2289675431ad734604",
+      "sha256": "7655b47a83c50e07b7a0df8647d56c47425139850c70deed854de30afe588ef4"
+    },
+    {
+      "path": "results/eval/model_b_seed1_test_fine_s5.json",
+      "commit": "011f7243148a8232100afd2289675431ad734604",
+      "sha256": "4a1248bb7aece1dae577e7505ff14a0ae0765915aff807bf3c85c8fe08058d97"
+    },
+    {
+      "path": "results/eval/model_b_seed1_test_fine_s5.csv",
+      "commit": "011f7243148a8232100afd2289675431ad734604",
+      "sha256": "0454f0421fba8f2aa18924c6313d025d5df414f09a43c7c814a6f0955eb656b7"
+    },
+    {
+      "path": "results/eval/model_b_seed2_test_fine_s5.json",
+      "commit": "011f7243148a8232100afd2289675431ad734604",
+      "sha256": "8794be278800c1de1122280ba7a9408ab2966daecf861254cf77825ed743ed79"
+    },
+    {
+      "path": "results/eval/model_b_seed2_test_fine_s5.csv",
+      "commit": "011f7243148a8232100afd2289675431ad734604",
+      "sha256": "701f1e3a45359d18dd98113c6409ed5132ae069a315a4683e5dab8bcfee875be"
+    },
+    {
+      "path": "results/eval/model_c_seed0_test_fine_s5.json",
+      "commit": "011f7243148a8232100afd2289675431ad734604",
+      "sha256": "2bd7bb9794a120209c47d062af57049686adaf3c6f9e03659b0af1a82987ebd2"
+    },
+    {
+      "path": "results/eval/model_c_seed0_test_fine_s5.csv",
+      "commit": "011f7243148a8232100afd2289675431ad734604",
+      "sha256": "08cb5694c9c7d34eef5b33a1f28028c4e570fadc16a32b1ecf13df8b32c9fdca"
+    },
+    {
+      "path": "results/eval/model_c_seed1_test_fine_s5.json",
+      "commit": "011f7243148a8232100afd2289675431ad734604",
+      "sha256": "4c2871043a41668cbe08636e63051675500bbebc07da2ff9fe761aad120ef915"
+    },
+    {
+      "path": "results/eval/model_c_seed1_test_fine_s5.csv",
+      "commit": "011f7243148a8232100afd2289675431ad734604",
+      "sha256": "1e15e891b8a71461e7a9ce6ae019553af875629855b03e14388d0759c8bf95e5"
+    },
+    {
+      "path": "results/eval/model_c_seed2_test_fine_s5.json",
+      "commit": "011f7243148a8232100afd2289675431ad734604",
+      "sha256": "fdc6130bc6997981734b6c2f98780b3e8c601070690432269c3a970f16acf351"
+    },
+    {
+      "path": "results/eval/model_c_seed2_test_fine_s5.csv",
+      "commit": "011f7243148a8232100afd2289675431ad734604",
+      "sha256": "3b879243f19c444e4c0f81fd8339cc201ceac7a04eb19f7c5b22b2a4cd5da57a"
+    },
+    {
+      "path": "results/eval/model_d_seed0_test_fine_s5.json",
+      "commit": "011f7243148a8232100afd2289675431ad734604",
+      "sha256": "5261883ebf2d4d1114df8c40a6aaec18b7dd3af6e2d0fef51cc06f0f11e5905a"
+    },
+    {
+      "path": "results/eval/model_d_seed0_test_fine_s5.csv",
+      "commit": "011f7243148a8232100afd2289675431ad734604",
+      "sha256": "d62dbd376e2dcf85c317dbedb28b0dd68db062ec6e2a5dd52d9de04ec54506c9"
+    },
+    {
+      "path": "results/eval/model_d_seed1_test_fine_s5.json",
+      "commit": "011f7243148a8232100afd2289675431ad734604",
+      "sha256": "8efd34064ac6658423e44d9479f10671017d87376a7f0130f3e339bd86c5b798"
+    },
+    {
+      "path": "results/eval/model_d_seed1_test_fine_s5.csv",
+      "commit": "011f7243148a8232100afd2289675431ad734604",
+      "sha256": "f8b4e9458d9bd2979e8a48d113bf8b6e23a40caf7ee793bfb449ab211abcef93"
+    },
+    {
+      "path": "results/eval/model_d_seed2_test_fine_s5.json",
+      "commit": "011f7243148a8232100afd2289675431ad734604",
+      "sha256": "b3cea16ca50662d3f778135d3189c6662d811f5a4f422987a74d165a59384bce"
+    },
+    {
+      "path": "results/eval/model_d_seed2_test_fine_s5.csv",
+      "commit": "011f7243148a8232100afd2289675431ad734604",
+      "sha256": "daddeaa65a80c1c1b2d28ced5855713e1713d0241495820c78dda749a5ec2657"
+    },
+    {
+      "path": "results/eval/gcn_seed0_test_fine_s5.json",
+      "commit": "011f7243148a8232100afd2289675431ad734604",
+      "sha256": "f7849e7b5c61b9d0ab18c8ebb139272e5250403429bffcbbebbbc0a03431e8e4"
+    },
+    {
+      "path": "results/eval/gcn_seed0_test_fine_s5.csv",
+      "commit": "011f7243148a8232100afd2289675431ad734604",
+      "sha256": "a14ce29cc90610d9d7c2acc22f028d62a91550f111dce055ec0345d6c2fa340b"
+    },
+    {
+      "path": "results/eval/gcn_seed1_test_fine_s5.json",
+      "commit": "011f7243148a8232100afd2289675431ad734604",
+      "sha256": "c33aaaba24c750d0fbe20b346ca7c37900d4905f7a87253a58d1b610306a28c4"
+    },
+    {
+      "path": "results/eval/gcn_seed1_test_fine_s5.csv",
+      "commit": "011f7243148a8232100afd2289675431ad734604",
+      "sha256": "4ad3daa43fc1b768894a7392d7619a3af2456c50d052871ae0eb58c07cd2b65d"
+    },
+    {
+      "path": "results/eval/gcn_seed2_test_fine_s5.json",
+      "commit": "011f7243148a8232100afd2289675431ad734604",
+      "sha256": "41d098a2cf9c70b146e3f882fdd84c09a3070075d6b6f38fad53960bf87f93d7"
+    },
+    {
+      "path": "results/eval/gcn_seed2_test_fine_s5.csv",
+      "commit": "011f7243148a8232100afd2289675431ad734604",
+      "sha256": "9bff3c53ff73389caadfd45284759cd4aa01dde8a50d32d593df0f3f6f061233"
+    },
+    {
+      "path": "results/eval/lf_t_test_fine_s5.json",
+      "commit": "011f7243148a8232100afd2289675431ad734604",
+      "sha256": "3d333d017469615fb1c67a88474e4006a2aaeb75e3f972a667a1aef17897cb5a"
+    },
+    {
+      "path": "results/eval/lf_t_test_fine_s5.csv",
+      "commit": "011f7243148a8232100afd2289675431ad734604",
+      "sha256": "799f84a649ed1df8a9e3073e0fc6e526116fe0787cf86f0ec4c371843ec45028"
+    },
+    {
+      "path": "results/eval/laplacian_filter_test_fine_s5.json",
+      "commit": "011f7243148a8232100afd2289675431ad734604",
+      "sha256": "91e64eb9c9180f9d0f61474238712afd2a821931db7e18efdf5e2d4ab008c7b2"
+    },
+    {
+      "path": "results/eval/laplacian_filter_test_fine_s5.csv",
+      "commit": "011f7243148a8232100afd2289675431ad734604",
+      "sha256": "f51911d43fab9377f7047af89f5fe43431226c3d9a4da1787e54ff97418210dc"
+    },
+    {
+      "path": "results/eval/unet_test_fine_s5.json",
+      "commit": "011f7243148a8232100afd2289675431ad734604",
+      "sha256": "24de00648b7a20da3f93a7a82a0c49e9a45df6ca8ea970d125ef567a6afe1404"
+    },
+    {
+      "path": "results/eval/unet_test_fine_s5.csv",
+      "commit": "011f7243148a8232100afd2289675431ad734604",
+      "sha256": "90f9a7390e9730a3f88b77d15b18986275ce79d351bab96ae131681db46bdaac"
+    },
+    {
+      "path": "results/eval/model_a_seed0_test_large_s5.json",
+      "commit": "011f7243148a8232100afd2289675431ad734604",
+      "sha256": "af3076f04c94b3cf0591748bdcf8c417420a70d8095af0f265f3827445a9eb96"
+    },
+    {
+      "path": "results/eval/model_a_seed0_test_large_s5.csv",
+      "commit": "011f7243148a8232100afd2289675431ad734604",
+      "sha256": "0916118e947f326a306b18a509e5d3a76462dbb43a9a5cab7ec9068d39d580b4"
+    },
+    {
+      "path": "results/eval/model_a_seed1_test_large_s5.json",
+      "commit": "011f7243148a8232100afd2289675431ad734604",
+      "sha256": "0f8486349b9a655fb2e972d24aa67b9c79a6eddc556a1c2d59df55197fb1246f"
+    },
+    {
+      "path": "results/eval/model_a_seed1_test_large_s5.csv",
+      "commit": "011f7243148a8232100afd2289675431ad734604",
+      "sha256": "4ac4c63860e821502815d25e8ca3aa7b0fc8fc1b6638f83c751d47886b5c5799"
+    },
+    {
+      "path": "results/eval/model_a_seed2_test_large_s5.json",
+      "commit": "011f7243148a8232100afd2289675431ad734604",
+      "sha256": "48af93079945634d9a38f36cc4db6877e857d6fb4d4a014d06c2c7544edf195d"
+    },
+    {
+      "path": "results/eval/model_a_seed2_test_large_s5.csv",
+      "commit": "011f7243148a8232100afd2289675431ad734604",
+      "sha256": "d6541f6795a5ed5b90606627953ff91c55a1933a0ea2c5f3c97aedc4213ab05e"
+    },
+    {
+      "path": "results/eval/model_b_seed0_test_large_s5.json",
+      "commit": "011f7243148a8232100afd2289675431ad734604",
+      "sha256": "4a085a9eea5b257ede176b10adaf0210a0a75853262ab1358c0f0683a8377543"
+    },
+    {
+      "path": "results/eval/model_b_seed0_test_large_s5.csv",
+      "commit": "011f7243148a8232100afd2289675431ad734604",
+      "sha256": "4ff97d9b0d413eaa3d1c90a787558a232045796f26729ec5bc58be670479946f"
+    },
+    {
+      "path": "results/eval/model_b_seed1_test_large_s5.json",
+      "commit": "011f7243148a8232100afd2289675431ad734604",
+      "sha256": "ed74246886e38e03e2df44973de76ff88309539944e099118a8a51864cf2ca39"
+    },
+    {
+      "path": "results/eval/model_b_seed1_test_large_s5.csv",
+      "commit": "011f7243148a8232100afd2289675431ad734604",
+      "sha256": "75e78324352882c396384332cc5ebbaaac2cbff548bbe5497cef265b9ecf8963"
+    },
+    {
+      "path": "results/eval/model_b_seed2_test_large_s5.json",
+      "commit": "011f7243148a8232100afd2289675431ad734604",
+      "sha256": "d6a1b8fccdfbaecfd90d21d87fc695451238112a0d7ce4cab34ce06e26781fb6"
+    },
+    {
+      "path": "results/eval/model_b_seed2_test_large_s5.csv",
+      "commit": "011f7243148a8232100afd2289675431ad734604",
+      "sha256": "05eaaada846a3a39897bab2c452fb42ea1c82fbd92a5f15bfc3c551c4111f0d8"
+    },
+    {
+      "path": "results/eval/model_c_seed0_test_large_s5.json",
+      "commit": "011f7243148a8232100afd2289675431ad734604",
+      "sha256": "8ccee08499db04c1200bcdbafc6af77191aea1dde634142433736b4ba3b0d8b6"
+    },
+    {
+      "path": "results/eval/model_c_seed0_test_large_s5.csv",
+      "commit": "011f7243148a8232100afd2289675431ad734604",
+      "sha256": "7c5ceefc95b4dd211d4fd9ddb77f2ff6039da344e619a8911994b9ccf82b2609"
+    },
+    {
+      "path": "results/eval/model_c_seed1_test_large_s5.json",
+      "commit": "011f7243148a8232100afd2289675431ad734604",
+      "sha256": "700eb355de798e851b356d1b80679546a899af44f26cbe10da2d97bbb974491a"
+    },
+    {
+      "path": "results/eval/model_c_seed1_test_large_s5.csv",
+      "commit": "011f7243148a8232100afd2289675431ad734604",
+      "sha256": "711f6794e35c5149e447851dd689f8dd16a4781e217f3f29457dfd24a3c37a3e"
+    },
+    {
+      "path": "results/eval/model_c_seed2_test_large_s5.json",
+      "commit": "011f7243148a8232100afd2289675431ad734604",
+      "sha256": "208baf134003108a421500c6678579410099d2aebe8f516305ed8379c612ba6e"
+    },
+    {
+      "path": "results/eval/model_c_seed2_test_large_s5.csv",
+      "commit": "011f7243148a8232100afd2289675431ad734604",
+      "sha256": "96f4841316d4b188981c2931af34f0b21fca3dce0b621d1adac83630b5f4a95e"
+    },
+    {
+      "path": "results/eval/model_d_seed0_test_large_s5.json",
+      "commit": "011f7243148a8232100afd2289675431ad734604",
+      "sha256": "c61333f6fa646bccf5af36900bd919342230e4a9891ad555723eedb2aecd3b22"
+    },
+    {
+      "path": "results/eval/model_d_seed0_test_large_s5.csv",
+      "commit": "011f7243148a8232100afd2289675431ad734604",
+      "sha256": "7a64d19c5de393b7e432effaedb2f3dd6d379545d9a3b89c8708b78dd2067d7a"
+    },
+    {
+      "path": "results/eval/model_d_seed1_test_large_s5.json",
+      "commit": "011f7243148a8232100afd2289675431ad734604",
+      "sha256": "dc88737edb29c078e160342f463c8758420160cde0617784fbf8c465c274fb1c"
+    },
+    {
+      "path": "results/eval/model_d_seed1_test_large_s5.csv",
+      "commit": "011f7243148a8232100afd2289675431ad734604",
+      "sha256": "8f6a3fa0e2da6b61942b9e1d0640a1737e1a8e252091b7bdac417a4dc80b634b"
+    },
+    {
+      "path": "results/eval/model_d_seed2_test_large_s5.json",
+      "commit": "011f7243148a8232100afd2289675431ad734604",
+      "sha256": "1089b201e6c325cfefe905f4b6481306249eeb127589c9e7fd7a358887b3960a"
+    },
+    {
+      "path": "results/eval/model_d_seed2_test_large_s5.csv",
+      "commit": "011f7243148a8232100afd2289675431ad734604",
+      "sha256": "7a58ffefd8e787d9b108e16a43afe41579fda7b0aa7bb304b7443be9bd11d786"
+    },
+    {
+      "path": "results/eval/gcn_seed0_test_large_s5.json",
+      "commit": "011f7243148a8232100afd2289675431ad734604",
+      "sha256": "d690900f45b5ae7d8ebd829f1317725d7a9fceaf1ef1a4db8358c69341e9fe27"
+    },
+    {
+      "path": "results/eval/gcn_seed0_test_large_s5.csv",
+      "commit": "011f7243148a8232100afd2289675431ad734604",
+      "sha256": "70e029ef5ec1163e208d9a1b376c4ad932b6044d9a6b754f8b4cbdb3cb877d66"
+    },
+    {
+      "path": "results/eval/gcn_seed1_test_large_s5.json",
+      "commit": "011f7243148a8232100afd2289675431ad734604",
+      "sha256": "e573b35229712c40bcf5a621c41c84848fea1e23d41305608f4ef5de0049c681"
+    },
+    {
+      "path": "results/eval/gcn_seed1_test_large_s5.csv",
+      "commit": "011f7243148a8232100afd2289675431ad734604",
+      "sha256": "93ff95dd68a531c4a25d5ebc4e1dba01946bf7b17ca7f70dc013b02b732d2cf5"
+    },
+    {
+      "path": "results/eval/gcn_seed2_test_large_s5.json",
+      "commit": "011f7243148a8232100afd2289675431ad734604",
+      "sha256": "204c8368f570f6488df6e98a55d162b94dafa1fb62dda664e2be74d76dee15b5"
+    },
+    {
+      "path": "results/eval/gcn_seed2_test_large_s5.csv",
+      "commit": "011f7243148a8232100afd2289675431ad734604",
+      "sha256": "2829bf0b10d5cc9befed6ee0b7c65cea27163f9b6e0314b1e20dc67dbdc338ee"
+    },
+    {
+      "path": "results/eval/lf_t_test_large_s5.json",
+      "commit": "011f7243148a8232100afd2289675431ad734604",
+      "sha256": "898eb612fb201119bff0abd7d237c0819093df36081f2e6aa891c2fc18bf07bd"
+    },
+    {
+      "path": "results/eval/lf_t_test_large_s5.csv",
+      "commit": "011f7243148a8232100afd2289675431ad734604",
+      "sha256": "d7d3e211ef98fa83d2720892eb5cc1d40bb80263920ca109e9b4da82dc1523cf"
+    },
+    {
+      "path": "results/eval/laplacian_filter_test_large_s5.json",
+      "commit": "011f7243148a8232100afd2289675431ad734604",
+      "sha256": "4b64705c59a943848599427736778f3a27d3e41c8b3f5d9ecc4e238145c9c931"
+    },
+    {
+      "path": "results/eval/laplacian_filter_test_large_s5.csv",
+      "commit": "011f7243148a8232100afd2289675431ad734604",
+      "sha256": "8015446abe551bf0cba8f3535b8a37a57d840e0a8dc86facd52d3053a63835f0"
+    },
+    {
+      "path": "results/eval/unet_test_large_s5.json",
+      "commit": "011f7243148a8232100afd2289675431ad734604",
+      "sha256": "6ec1d3cc1a81edbfb58774755b8236ad489f54494469cfee5133f7f526e824cb"
+    },
+    {
+      "path": "results/eval/unet_test_large_s5.csv",
+      "commit": "011f7243148a8232100afd2289675431ad734604",
+      "sha256": "26f779c953c7a75e2f34f2e592c00176f78116b05b264ed190b1224e57f85589"
+    },
+    {
+      "path": "results/eval/cross_test_fine_s5.json",
+      "commit": "011f7243148a8232100afd2289675431ad734604",
+      "sha256": "75fb18dd900beecc80cb097cf073fe316c4ba80304ea8f7156f1873d0d84d51e"
+    },
+    {
+      "path": "results/eval/cross_test_fine_s5.csv",
+      "commit": "011f7243148a8232100afd2289675431ad734604",
+      "sha256": "c83535af416622a2c1e93e5153245c2c4a38be9426e94be48535db0c04821e1b"
+    },
+    {
+      "path": "results/tables/main_table.md",
+      "commit": "011f7243148a8232100afd2289675431ad734604",
+      "sha256": "74ce9ebad1c55d7168814d28585e95190710f7abb973264e333884ca10831c33"
+    },
+    {
+      "path": "results/tables/main_table.csv",
+      "commit": "011f7243148a8232100afd2289675431ad734604",
+      "sha256": "2250b3364865c946105d7370bc5949852a0fec0454c02d7f2ca35b91de4e2ce5"
+    }
+  ],
+  "checkpoint_audit": [
+    {
+      "model": "A",
+      "seed": 0,
+      "path": "results/models/model_a_seed0/best.pt",
+      "sha256": "5fb947bbdc8bb8f993e4358a9502b015eb118c2b4f81c529b769c1d979c1f75b",
+      "best_step": 90000,
+      "score": 0.0036403509164327124,
+      "eval_score": 0.0036403524275341785,
+      "train_fingerprint": "a134269f75ce9513",
+      "torch_version": "2.9.1+rocm7.2.1",
+      "precision": "bf16"
+    },
+    {
+      "model": "A",
+      "seed": 1,
+      "path": "results/models/model_a_seed1/best.pt",
+      "sha256": "df48cd00d0f60be30b3e1cc63aab3a02d9c52dcfe54c331d5d5c84c9d7cf2cf0",
+      "best_step": 84000,
+      "score": 0.00382311748498469,
+      "eval_score": 0.0038231172802825402,
+      "train_fingerprint": "a134269f75ce9513",
+      "torch_version": "2.9.1+rocm7.2.1",
+      "precision": "bf16"
+    },
+    {
+      "model": "A",
+      "seed": 2,
+      "path": "results/models/model_a_seed2/best.pt",
+      "sha256": "a9aaee36a88d21209a29c5b19fbbe92c736bb6ea5055887f443d0ba451513992",
+      "best_step": 98000,
+      "score": 0.0033595862011449804,
+      "eval_score": 0.003359585879285268,
+      "train_fingerprint": "a134269f75ce9513",
+      "torch_version": "2.9.1+rocm7.2.1",
+      "precision": "bf16"
+    },
+    {
+      "model": "B",
+      "seed": 0,
+      "path": "results/models/model_b_seed0/best.pt",
+      "sha256": "a36cee74e0f773d188842ecdf64c731686d2a45f8da7a15276e2f5ec0cf831c6",
+      "best_step": 88000,
+      "score": 0.0031205125719260705,
+      "eval_score": 0.0031205110226932074,
+      "train_fingerprint": "a134269f75ce9513",
+      "torch_version": "2.5.1",
+      "precision": "bf16"
+    },
+    {
+      "model": "B",
+      "seed": 1,
+      "path": "results/models/model_b_seed1/best.pt",
+      "sha256": "7564606c7861d046ed3b83c94c5fcc0ddf93845ef041ff4c7d82d138c8f65213",
+      "best_step": 92000,
+      "score": 0.002555637787886534,
+      "eval_score": 0.0025556366029702514,
+      "train_fingerprint": "a134269f75ce9513",
+      "torch_version": "2.5.1",
+      "precision": "bf16"
+    },
+    {
+      "model": "B",
+      "seed": 2,
+      "path": "results/models/model_b_seed2/best.pt",
+      "sha256": "779c7b0aad5decfa2800f6011abd562cc51d2c73d54cad0a7bc9e1dcd50b1329",
+      "best_step": 98000,
+      "score": 0.0030024837766484897,
+      "eval_score": 0.00300248876891123,
+      "train_fingerprint": "a134269f75ce9513",
+      "torch_version": "2.5.1",
+      "precision": "bf16"
+    }
+  ]
+}

@@ -1,5 +1,7 @@
 # Model B methods and preliminary spectral analysis
 
+> **Update, 6 November 2026:** Updated three-seed comparison and mesh-transfer results are in [Model B results](lei_model_b_results.md). The dated execution-status statements below are historical; use the new results document for current numerical conclusions.
+
 This draft describes the implemented method and completed, checkpoint-free
 spectral calculations. It contains no trained Model B performance claims.
 Formal gate, correction-map and transfer results remain pending GPU access.
