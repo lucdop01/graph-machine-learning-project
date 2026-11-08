@@ -93,6 +93,8 @@ python -m graphs.figures                     # mesh and interpolation figures in
 python -m verify.harness                     # check 8: the harness scores the solver's own frames, under a minute
 python -m evaluation.rollout --size-bins     # melt-pool size bins from the train split (once)
 python -m analysis.main_table                # main results tables from results/eval/ (results/tables/)
+python -m analysis.model_b_energy            # where Model B's zigzag energy surplus comes from (also _bands, _k_test)
+python -m analysis.plot_zigzag_comparison --run data/graphs/seed0/test_path_zigzag_000.h5 --frame 60 --device cuda
 python -m models.linear_filter_rollout --split val  # selected LF-T: results/eval/lf_t_val_s5.csv/.json
 python -m evaluation.rollout --split val --stride 5 --predictor oracle   # rollout metrics in results/eval/
 python -m models.train --config configs/model_a.yaml --steps 2000 --name smoke   # training smoke run (CPU default; use --device cuda on GPU)
@@ -668,7 +670,9 @@ models/          backbone.py, model_a.py, model_b.py, model_c.py, model_d.py, gc
                  compare_unet_norm.py, plot_unet_history.py
 train_harness.py unified training engine with dynamic model registry, reproducible seeding, and atomic checkpointing
 docs/            training_guide.md (unified guide & conventions), team documentation, archive/ (superseded reports)
-analysis/        plateau.py, run_model_b_gate.py, spectra.py, mesh_transfer.py, main_table.py (results tables)
+analysis/        plateau.py, run_model_b_gate.py, spectra.py, mesh_transfer.py, main_table.py (results tables),
+                 model_b_energy.py, model_b_energy_bands.py, model_b_k_test.py (Model B energy diagnostics),
+                 plot_zigzag_comparison.py (zigzag figure, Models A-D)
 configs/         model_a.yaml, model_b.yaml, model_c.yaml, model_d.yaml, gcn.yaml
 notebooks/       project.ipynb (one rollout per model, the results tables and the report figures)
 results/         eval/ (rollout metrics), tables/ (main results, generated), models/ (final runs, see below),
