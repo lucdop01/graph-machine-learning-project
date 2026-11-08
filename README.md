@@ -7,6 +7,26 @@ linear heat diffusion (MAM-PhyGNN style), an enthalpy output with an exact mater
 Baselines are a U-Net on a regular grid and linear graph filters. The data comes from our own verified solver for a laser
 moving over a thin Ti-6Al-4V plate, with melting.
 
+## Start here
+
+| What | Where |
+|---|---|
+| Reproduce the results and the report figures (about 4 minutes on a CPU, no data download) | [notebooks/project.ipynb](notebooks/project.ipynb) |
+| Every model on every test split, with the hypothesis test | [results/tables/main_table.md](results/tables/main_table.md); summary under [Main results](#main-results) |
+| Report figures (PDF and PNG) | [results/report_figures/](results/report_figures/) |
+| Final trained models, three seeds each | [results/models/](results/models/) |
+| Model code | [models/](models/): `model_a.py` to `model_d.py`, `gcn.py`, `unet.py`, `linear_filter.py` |
+
+```bash
+pip install -r requirements.txt        # install PyTorch for your platform first (https://pytorch.org)
+jupyter nbconvert --to notebook --execute notebooks/project.ipynb   # or open it in Jupyter
+```
+
+The simulation data (`data/runs/`, about 1.3 GB) is not in the repository. The notebook re-simulates the one test run
+it needs with the solver; everything else it reads from `results/`. To regenerate the full data set and retrain, see
+[Quick start](#quick-start). Interim reports from October are in [docs/archive/](docs/archive/) and are superseded by
+the results above.
+
 ## Status
 
 - **Model A** (`models/model_a.py`, `configs/model_a.yaml`): MeshGraphNet baseline; three seeds each with augmentation (the shared runs, `results/models/model_a_seed*`, `results/eval/model_a_seed*`) and without it (the ablation, `results/eval/a_seed*`), evaluated on every split.
@@ -23,14 +43,15 @@ moving over a thin Ti-6Al-4V plate, with melting.
 | Graph preprocessing (`graphs/`) | Done: meshes, node data, PyTorch Geometric dataset; energy check passes (check 7) |
 | Rollout and evaluation harness (`evaluation/`) | Done: rollouts, metrics, selection score, reference predictors; the solver's own frames score zero (check 8) |
 | Model A (`models/model_a.py`) | Done: three seeds each without and with augmentation trained and evaluated on every split (`results/eval/a_seed*`, `model_a_seed*`); augmentation improves unseen paths, with regressions on the new mesh seed |
-| Model B (`models/model_b.py`) | Done: physics-informed linear diffusion residual integrated into harness and verified |
-| Model C (`models/model_c.py`) | Done: enthalpy formulation with continuous material inversion, integrated into harness |
-| Model D (`models/model_d.py`) | Done: strictly conservative flux GNN with bit-exact zero internal energy error |
-| GCN / RGCN (`models/gcn.py`) | Done: baseline graph convolution architectures with normalization stats and stride support |
+| Model B (`models/model_b.py`) | Done: physics-informed linear diffusion residual; three seeds trained and evaluated on every split |
+| Model C (`models/model_c.py`) | Done: enthalpy formulation with continuous material inversion; three seeds trained and evaluated on every split |
+| Model D (`models/model_d.py`) | Done: conservative flux GNN, exact energy conservation on its own graph; three seeds trained and evaluated on every split |
+| GCN / RGCN (`models/gcn.py`) | Done: baseline graph convolution; three GCN seeds trained and evaluated on every split |
 | Unified Harness (`train_harness.py`) | Done: multi-model registry, exact reproducibility, mock verified (`verify.mock_train`) |
 | Laplacian and LF-T baseline | Done: constrained Ridge order comparison, selected K=5 predictor and val rollout for the B gate |
 | U-Net baseline | Trained (seed 0) and evaluated; [final report](results/unet_final/report.md), selected checkpoint `checkpoints/unet_early_stop_retry_group_s5_seed0.pt` |
-| Partitions, remaining analysis | In progress (`graphs/`, `models/`, `analysis/`) |
+| Results tables, notebook and report figures | Done: `analysis/main_table.py`, `notebooks/project.ipynb`, `results/report_figures/` |
+| Partitioned rollouts on test_large, stride-2 experiments (E3) | Not done; outside the scope of the final report |
 
 ## Setup
 
@@ -78,7 +99,7 @@ python -m models.train --config configs/model_a.yaml --steps 2000 --name smoke  
 ```
 
 Generated runs go to `data/runs/` (git-ignored) and the index to `data/splits.json` (commit this one).
-The data is fully determined by the seeds in `generate.py`; host a copy of `data/runs/` outside GitHub and link it here.
+The data is fully determined by the seeds in `generate.py`, so regenerating it gives the same runs.
 
 ## Final U-Net baseline
 
@@ -646,11 +667,12 @@ models/          backbone.py, model_a.py, model_b.py, model_c.py, model_d.py, gc
                  unet.py, unet_pipeline.py, train_unet.py, train_unet_early_stop.py, evaluate_unet.py,
                  compare_unet_norm.py, plot_unet_history.py
 train_harness.py unified training engine with dynamic model registry, reproducible seeding, and atomic checkpointing
-docs/            training_guide.md (unified guide & conventions), team reports and documentation
+docs/            training_guide.md (unified guide & conventions), team documentation, archive/ (superseded reports)
 analysis/        plateau.py, run_model_b_gate.py, spectra.py, mesh_transfer.py, main_table.py (results tables)
 configs/         model_a.yaml, model_b.yaml, model_c.yaml, model_d.yaml, gcn.yaml
-notebooks/       project.ipynb (course requirement)
+notebooks/       project.ipynb (one rollout per model, the results tables and the report figures)
 results/         eval/ (rollout metrics), tables/ (main results, generated), models/ (final runs, see below),
+                 report_figures/ (figures for the report, written by the notebook),
                  figures/ (git-ignored),
                  unet_final/ (U-Net report and held-out metrics), unet_early_stop_retry/ (selected U-Net training run),
                  archive/ (historical U-Net experiments)

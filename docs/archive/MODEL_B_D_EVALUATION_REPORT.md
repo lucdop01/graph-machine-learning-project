@@ -1,3 +1,7 @@
+> **Superseded.** Interim report from October 2026, kept for the record. Several numbers and claims in it were
+> later corrected (see [README](README.md)). The final results are in
+> [results/tables/main_table.md](../../results/tables/main_table.md) and [notebooks/project.ipynb](../../notebooks/project.ipynb).
+
 # Scientific Evaluation Report: Model B & Model D 3-Seed Training
 
 **Project**: CS4350 Graph Machine Learning Project  

@@ -1,3 +1,7 @@
+> **Superseded.** Interim report from October 2026, kept for the record. Several numbers and claims in it were
+> later corrected (see [README](README.md)). The final results are in
+> [results/tables/main_table.md](../../results/tables/main_table.md) and [notebooks/project.ipynb](../../notebooks/project.ipynb).
+
 # Group Research Report: Model B & D Results + Graph ML Framing
 
 **Author**: Satwik Miyyapuram  
@@ -53,20 +57,20 @@ Here is how we directly address this critique and frame our report/paper around 
 We have generated publication-quality figures showcasing the thermal fields, melt-pool isotherms, and mesh resolution:
 
 ### A. Melt-Pool Interface Overview & Centerline Profile
-![Melt Pool Overview](figures/heat_prediction_overview.png)
+![Melt Pool Overview](../figures/heat_prediction_overview.png)
 
 * **Top Panel**: Detailed zoom on the unstructured triangular mesh (white wireframe). Solidus ($1,878\text{ K}$, cyan) and Liquidus ($1,928\text{ K}$, white) isotherms clearly delineate the molten pool, mushy transition zone, and solid substrate.
 * **Bottom Panel**: Centerline thermal cut $T(x)$ through the laser track ($y = y_{\text{laser}}$). Clearly shows the steep heating gradient ahead of the laser ($x > 800\ \mu\text{m}$) and the elongated cooling tail with the latent-heat melting plateau.
 
 ### B. Thermal Evolution Across Physical Regimes
-![Thermal Evolution Across Time](figures/melt_pool_thermal_evolution.png)
+![Thermal Evolution Across Time](../figures/melt_pool_thermal_evolution.png)
 
 * **Frame A ($t = 0.3\text{ ms}$)**: Early transient laser heating and localized pool initiation.
 * **Frame B ($t = 0.8\text{ ms}$)**: Quasi-steady state melt pool moving across the adaptive fine lattice band.
 * **Frame C ($t = 1.5\text{ ms}$)**: Post-laser cooling and complete solidification dynamics.
 
 ### C. Graph Nodes, Mesh Connectivity & Cross-Model Predictions
-![Graph Nodes & Heat Predictions](figures/graph_nodes_heat_comparison.png)
+![Graph Nodes & Heat Predictions](../figures/graph_nodes_heat_comparison.png)
 
 * Multi-panel comparison highlighting discrete graph nodes, mesh zones, edge channels, and side-by-side Ground Truth vs. Model B vs. Model D thermal predictions and error maps.
 
