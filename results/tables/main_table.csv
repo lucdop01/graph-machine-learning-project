@@ -1,0 +1,505 @@
+model,label,split,metric,mean,std,seeds
+gcn,GCN,val,nrmse,0.0215129,0.000688784,3
+gcn,GCN,val,melt_mae,13.2478,0.212496,3
+gcn,GCN,val,iou,0.926109,0.0058433,3
+gcn,GCN,val,iou_small,,,0
+gcn,GCN,val,iou_medium,0.903113,0.00881766,3
+gcn,GCN,val,iou_large,0.933947,0.00529126,3
+gcn,GCN,val,energy_a,0.0231919,0.00843148,3
+gcn,GCN,val,energy_end,-0.00397506,0.00714416,3
+gcn,GCN,test_interp,nrmse,0.0220373,0.00118379,3
+gcn,GCN,test_interp,melt_mae,17.2589,0.993006,3
+gcn,GCN,test_interp,iou,0.910371,0.00695406,3
+gcn,GCN,test_interp,iou_small,0.807369,0.0181794,3
+gcn,GCN,test_interp,iou_medium,0.897068,0.00208679,3
+gcn,GCN,test_interp,iou_large,0.916511,0.00803232,3
+gcn,GCN,test_interp,energy_a,0.0265508,0.00826672,3
+gcn,GCN,test_interp,energy_end,-0.00382839,0.00955986,3
+gcn,GCN,test_interp_seed1,nrmse,0.0230705,0.00112874,3
+gcn,GCN,test_interp_seed1,melt_mae,17.7446,0.871727,3
+gcn,GCN,test_interp_seed1,iou,0.905342,0.00453595,3
+gcn,GCN,test_interp_seed1,iou_small,0.838328,0.0160123,3
+gcn,GCN,test_interp_seed1,iou_medium,0.892098,0.00131548,3
+gcn,GCN,test_interp_seed1,iou_large,0.910196,0.00522465,3
+gcn,GCN,test_interp_seed1,energy_a,0.0274955,0.0106978,3
+gcn,GCN,test_interp_seed1,energy_end,-0.00318664,0.00958278,3
+gcn,GCN,test_extrap,nrmse,0.0386594,0.000848847,3
+gcn,GCN,test_extrap,melt_mae,42.1481,3.31885,3
+gcn,GCN,test_extrap,iou,0.852233,0.00906852,3
+gcn,GCN,test_extrap,iou_small,,,0
+gcn,GCN,test_extrap,iou_medium,,,0
+gcn,GCN,test_extrap,iou_large,0.852233,0.00906852,3
+gcn,GCN,test_extrap,energy_a,0.0320124,0.00390077,3
+gcn,GCN,test_extrap,energy_end,0.0121227,0.0237598,3
+gcn,GCN,test_path,nrmse,0.12961,0.00813193,3
+gcn,GCN,test_path,melt_mae,325.988,22.1012,3
+gcn,GCN,test_path,iou,0.292241,0.0109018,3
+gcn,GCN,test_path,iou_small,0.0398501,0.00494856,3
+gcn,GCN,test_path,iou_medium,0.237,0.00880274,3
+gcn,GCN,test_path,iou_large,0.295669,0.0112696,3
+gcn,GCN,test_path,energy_a,0.12323,0.0170538,3
+gcn,GCN,test_path,energy_end,-0.114282,0.0179676,3
+gcn,GCN,test_fine,nrmse,0.0223554,0.00124849,3
+gcn,GCN,test_fine,melt_mae,17.1772,0.895107,3
+gcn,GCN,test_fine,iou,0.906499,0.0059984,3
+gcn,GCN,test_fine,iou_small,0.795732,0.010214,3
+gcn,GCN,test_fine,iou_medium,0.880877,0.0103415,3
+gcn,GCN,test_fine,iou_large,0.915466,0.00725165,3
+gcn,GCN,test_fine,energy_a,0.02707,0.00828865,3
+gcn,GCN,test_fine,energy_end,-0.00405905,0.00957397,3
+gcn,GCN,test_large,nrmse,0.068281,0.0124433,3
+gcn,GCN,test_large,melt_mae,11.9297,0.452127,3
+gcn,GCN,test_large,iou,0.921193,0.00473064,3
+gcn,GCN,test_large,iou_small,,,0
+gcn,GCN,test_large,iou_medium,0.904939,0.00473621,3
+gcn,GCN,test_large,iou_large,0.933622,0.00541071,3
+gcn,GCN,test_large,energy_a,0.491438,0.0912792,3
+gcn,GCN,test_large,energy_end,0.491438,0.0912792,3
+a,A: MeshGraphNet,val,nrmse,0.00360769,0.000233486,3
+a,A: MeshGraphNet,val,melt_mae,4.343,0.289033,3
+a,A: MeshGraphNet,val,iou,0.974881,0.001991,3
+a,A: MeshGraphNet,val,iou_small,,,0
+a,A: MeshGraphNet,val,iou_medium,0.960302,0.00243802,3
+a,A: MeshGraphNet,val,iou_large,0.979854,0.00188742,3
+a,A: MeshGraphNet,val,energy_a,0.0107277,0.00546935,3
+a,A: MeshGraphNet,val,energy_end,0.00276888,0.00111335,3
+a,A: MeshGraphNet,test_interp,nrmse,0.00431177,0.000267253,3
+a,A: MeshGraphNet,test_interp,melt_mae,7.06016,0.184119,3
+a,A: MeshGraphNet,test_interp,iou,0.961395,0.00137343,3
+a,A: MeshGraphNet,test_interp,iou_small,0.913951,0.0112093,3
+a,A: MeshGraphNet,test_interp,iou_medium,0.962334,0.00405134,3
+a,A: MeshGraphNet,test_interp,iou_large,0.96277,0.00175594,3
+a,A: MeshGraphNet,test_interp,energy_a,0.0138051,0.00610874,3
+a,A: MeshGraphNet,test_interp,energy_end,0.00292024,0.00123639,3
+a,A: MeshGraphNet,test_interp_seed1,nrmse,0.0117765,0.00148887,3
+a,A: MeshGraphNet,test_interp_seed1,melt_mae,8.6888,0.365376,3
+a,A: MeshGraphNet,test_interp_seed1,iou,0.952471,0.00200188,3
+a,A: MeshGraphNet,test_interp_seed1,iou_small,0.903349,0.00337172,3
+a,A: MeshGraphNet,test_interp_seed1,iou_medium,0.953612,0.00431625,3
+a,A: MeshGraphNet,test_interp_seed1,iou_large,0.953839,0.00218393,3
+a,A: MeshGraphNet,test_interp_seed1,energy_a,0.0110292,0.00153601,3
+a,A: MeshGraphNet,test_interp_seed1,energy_end,-0.00105704,0.00276055,3
+a,A: MeshGraphNet,test_extrap,nrmse,0.0155774,0.000586265,3
+a,A: MeshGraphNet,test_extrap,melt_mae,24.0951,0.686066,3
+a,A: MeshGraphNet,test_extrap,iou,0.909701,0.00288616,3
+a,A: MeshGraphNet,test_extrap,iou_small,,,0
+a,A: MeshGraphNet,test_extrap,iou_medium,,,0
+a,A: MeshGraphNet,test_extrap,iou_large,0.909701,0.00288616,3
+a,A: MeshGraphNet,test_extrap,energy_a,0.0132387,0.00466688,3
+a,A: MeshGraphNet,test_extrap,energy_end,0.00144573,0.00174974,3
+a,A: MeshGraphNet,test_path,nrmse,0.0993037,0.00675014,3
+a,A: MeshGraphNet,test_path,melt_mae,252.182,24.0089,3
+a,A: MeshGraphNet,test_path,iou,0.390034,0.0296761,3
+a,A: MeshGraphNet,test_path,iou_small,0.0490202,0.0057395,3
+a,A: MeshGraphNet,test_path,iou_medium,0.313082,0.0128678,3
+a,A: MeshGraphNet,test_path,iou_large,0.3947,0.030506,3
+a,A: MeshGraphNet,test_path,energy_a,0.0955884,0.0122218,3
+a,A: MeshGraphNet,test_path,energy_end,-0.0873564,0.00650381,3
+a,A: MeshGraphNet,test_fine,nrmse,0.00539351,8.88051e-05,3
+a,A: MeshGraphNet,test_fine,melt_mae,7.94392,0.175322,3
+a,A: MeshGraphNet,test_fine,iou,0.950951,0.00408821,3
+a,A: MeshGraphNet,test_fine,iou_small,0.854381,0.0167977,3
+a,A: MeshGraphNet,test_fine,iou_medium,0.928112,0.00887607,3
+a,A: MeshGraphNet,test_fine,iou_large,0.958642,0.00275557,3
+a,A: MeshGraphNet,test_fine,energy_a,0.0143607,0.00506154,3
+a,A: MeshGraphNet,test_fine,energy_end,0.00260656,0.0012349,3
+a,A: MeshGraphNet,test_large,nrmse,0.0114056,0.000538391,3
+a,A: MeshGraphNet,test_large,melt_mae,4.93825,0.285442,3
+a,A: MeshGraphNet,test_large,iou,0.968632,0.000880096,3
+a,A: MeshGraphNet,test_large,iou_small,,,0
+a,A: MeshGraphNet,test_large,iou_medium,0.959937,0.0004357,3
+a,A: MeshGraphNet,test_large,iou_large,0.974927,0.00150496,3
+a,A: MeshGraphNet,test_large,energy_a,0.0241583,0.00914693,3
+a,A: MeshGraphNet,test_large,energy_end,0.0064447,0.00390486,3
+b,B: + linear diffusion,val,nrmse,0.00289288,0.000297962,3
+b,B: + linear diffusion,val,melt_mae,3.70679,0.198955,3
+b,B: + linear diffusion,val,iou,0.977375,0.00123421,3
+b,B: + linear diffusion,val,iou_small,,,0
+b,B: + linear diffusion,val,iou_medium,0.964436,0.00112945,3
+b,B: + linear diffusion,val,iou_large,0.981791,0.00136377,3
+b,B: + linear diffusion,val,energy_a,0.006523,0.00344912,3
+b,B: + linear diffusion,val,energy_end,0.0014046,0.000383016,3
+b,B: + linear diffusion,test_interp,nrmse,0.00307745,0.000243972,3
+b,B: + linear diffusion,test_interp,melt_mae,3.94105,0.28776,3
+b,B: + linear diffusion,test_interp,iou,0.976952,0.00185578,3
+b,B: + linear diffusion,test_interp,iou_small,0.911519,0.010366,3
+b,B: + linear diffusion,test_interp,iou_medium,0.95539,0.0032073,3
+b,B: + linear diffusion,test_interp,iou_large,0.983075,0.00178467,3
+b,B: + linear diffusion,test_interp,energy_a,0.00736218,0.00364217,3
+b,B: + linear diffusion,test_interp,energy_end,0.00207138,0.000650952,3
+b,B: + linear diffusion,test_interp_seed1,nrmse,0.00990499,0.00229557,3
+b,B: + linear diffusion,test_interp_seed1,melt_mae,4.69719,0.220462,3
+b,B: + linear diffusion,test_interp_seed1,iou,0.972514,0.00176918,3
+b,B: + linear diffusion,test_interp_seed1,iou_small,0.904107,0.00537213,3
+b,B: + linear diffusion,test_interp_seed1,iou_medium,0.94465,0.00391023,3
+b,B: + linear diffusion,test_interp_seed1,iou_large,0.979971,0.00208053,3
+b,B: + linear diffusion,test_interp_seed1,energy_a,0.0141807,0.00850446,3
+b,B: + linear diffusion,test_interp_seed1,energy_end,-0.00232826,0.00113455,3
+b,B: + linear diffusion,test_extrap,nrmse,0.00452238,0.000720068,3
+b,B: + linear diffusion,test_extrap,melt_mae,4.82894,0.35644,3
+b,B: + linear diffusion,test_extrap,iou,0.975602,0.00165214,3
+b,B: + linear diffusion,test_extrap,iou_small,,,0
+b,B: + linear diffusion,test_extrap,iou_medium,,,0
+b,B: + linear diffusion,test_extrap,iou_large,0.975602,0.00165214,3
+b,B: + linear diffusion,test_extrap,energy_a,0.00515681,0.00194412,3
+b,B: + linear diffusion,test_extrap,energy_end,-0.000311836,0.00116746,3
+b,B: + linear diffusion,test_path,nrmse,0.0764765,0.00809021,3
+b,B: + linear diffusion,test_path,melt_mae,88.4717,3.17722,3
+b,B: + linear diffusion,test_path,iou,0.477694,0.0122581,3
+b,B: + linear diffusion,test_path,iou_small,0.14466,0.017445,3
+b,B: + linear diffusion,test_path,iou_medium,0.372712,0.0247018,3
+b,B: + linear diffusion,test_path,iou_large,0.488275,0.0122365,3
+b,B: + linear diffusion,test_path,energy_a,0.0820303,0.00692346,3
+b,B: + linear diffusion,test_path,energy_end,0.0773981,0.00998149,3
+b,B: + linear diffusion,test_fine,nrmse,0.00463208,0.000123698,3
+b,B: + linear diffusion,test_fine,melt_mae,5.21042,0.201244,3
+b,B: + linear diffusion,test_fine,iou,0.966896,0.00334842,3
+b,B: + linear diffusion,test_fine,iou_small,0.854495,0.00543675,3
+b,B: + linear diffusion,test_fine,iou_medium,0.931231,0.00569542,3
+b,B: + linear diffusion,test_fine,iou_large,0.977539,0.0028567,3
+b,B: + linear diffusion,test_fine,energy_a,0.00796633,0.0030015,3
+b,B: + linear diffusion,test_fine,energy_end,0.00180938,0.000604379,3
+b,B: + linear diffusion,test_large,nrmse,0.00921789,0.000967031,3
+b,B: + linear diffusion,test_large,melt_mae,4.59147,0.121314,3
+b,B: + linear diffusion,test_large,iou,0.968503,0.00124258,3
+b,B: + linear diffusion,test_large,iou_small,,,0
+b,B: + linear diffusion,test_large,iou_medium,0.955167,0.00138106,3
+b,B: + linear diffusion,test_large,iou_large,0.978354,0.00131385,3
+b,B: + linear diffusion,test_large,energy_a,0.0170309,0.00916255,3
+b,B: + linear diffusion,test_large,energy_end,-0.00397881,0.00361272,3
+c,C: enthalpy output,val,nrmse,0.00486808,0.000931469,3
+c,C: enthalpy output,val,melt_mae,4.22964,0.268016,3
+c,C: enthalpy output,val,iou,0.984205,0.00197737,3
+c,C: enthalpy output,val,iou_small,,,0
+c,C: enthalpy output,val,iou_medium,0.977936,0.00154956,3
+c,C: enthalpy output,val,iou_large,0.986333,0.00254964,3
+c,C: enthalpy output,val,energy_a,0.00642196,0.00202368,3
+c,C: enthalpy output,val,energy_end,7.4064e-05,0.000617638,3
+c,C: enthalpy output,test_interp,nrmse,0.00560937,0.00108328,3
+c,C: enthalpy output,test_interp,melt_mae,6.83685,0.236104,3
+c,C: enthalpy output,test_interp,iou,0.968858,0.00112783,3
+c,C: enthalpy output,test_interp,iou_small,0.965037,0.00391031,3
+c,C: enthalpy output,test_interp,iou_medium,0.975852,0.00181119,3
+c,C: enthalpy output,test_interp,iou_large,0.967699,0.00120757,3
+c,C: enthalpy output,test_interp,energy_a,0.00806467,0.00235226,3
+c,C: enthalpy output,test_interp,energy_end,-0.000256102,0.000478384,3
+c,C: enthalpy output,test_interp_seed1,nrmse,0.0121871,0.00164711,3
+c,C: enthalpy output,test_interp_seed1,melt_mae,8.16673,0.548593,3
+c,C: enthalpy output,test_interp_seed1,iou,0.961724,0.00263049,3
+c,C: enthalpy output,test_interp_seed1,iou_small,0.951367,0.0015747,3
+c,C: enthalpy output,test_interp_seed1,iou_medium,0.970118,0.000228114,3
+c,C: enthalpy output,test_interp_seed1,iou_large,0.960515,0.00318867,3
+c,C: enthalpy output,test_interp_seed1,energy_a,0.0144206,0.00482606,3
+c,C: enthalpy output,test_interp_seed1,energy_end,-0.00335447,0.00314502,3
+c,C: enthalpy output,test_extrap,nrmse,0.0168313,0.000895107,3
+c,C: enthalpy output,test_extrap,melt_mae,24.5138,1.5231,3
+c,C: enthalpy output,test_extrap,iou,0.910254,0.00429375,3
+c,C: enthalpy output,test_extrap,iou_small,,,0
+c,C: enthalpy output,test_extrap,iou_medium,,,0
+c,C: enthalpy output,test_extrap,iou_large,0.910254,0.00429375,3
+c,C: enthalpy output,test_extrap,energy_a,0.0113708,0.00290649,3
+c,C: enthalpy output,test_extrap,energy_end,-0.00180902,0.00875285,3
+c,C: enthalpy output,test_path,nrmse,0.109287,0.00731837,3
+c,C: enthalpy output,test_path,melt_mae,276.705,42.6508,3
+c,C: enthalpy output,test_path,iou,0.37077,0.0484213,3
+c,C: enthalpy output,test_path,iou_small,0.0373002,0.0102772,3
+c,C: enthalpy output,test_path,iou_medium,0.297626,0.0364489,3
+c,C: enthalpy output,test_path,iou_large,0.375219,0.049302,3
+c,C: enthalpy output,test_path,energy_a,0.103237,0.00881356,3
+c,C: enthalpy output,test_path,energy_end,-0.101072,0.00943257,3
+c,C: enthalpy output,test_fine,nrmse,0.00664394,0.00105614,3
+c,C: enthalpy output,test_fine,melt_mae,8.23028,0.255684,3
+c,C: enthalpy output,test_fine,iou,0.954664,0.0034034,3
+c,C: enthalpy output,test_fine,iou_small,0.858859,0.0110075,3
+c,C: enthalpy output,test_fine,iou_medium,0.934634,0.00482423,3
+c,C: enthalpy output,test_fine,iou_large,0.961806,0.00301494,3
+c,C: enthalpy output,test_fine,energy_a,0.00826717,0.00288634,3
+c,C: enthalpy output,test_fine,energy_end,-0.000500089,0.000492702,3
+c,C: enthalpy output,test_large,nrmse,0.0107385,0.00109199,3
+c,C: enthalpy output,test_large,melt_mae,4.78519,0.225794,3
+c,C: enthalpy output,test_large,iou,0.978748,0.000944012,3
+c,C: enthalpy output,test_large,iou_small,,,0
+c,C: enthalpy output,test_large,iou_medium,0.975487,0.000912656,3
+c,C: enthalpy output,test_large,iou_large,0.981049,0.0020821,3
+c,C: enthalpy output,test_large,energy_a,0.0234133,0.00348843,3
+c,C: enthalpy output,test_large,energy_end,-0.00115775,0.00186263,3
+d,D: conservative enthalpy,val,nrmse,0.00616276,0.000100556,3
+d,D: conservative enthalpy,val,melt_mae,6.29194,0.35778,3
+d,D: conservative enthalpy,val,iou,0.981898,0.000913073,3
+d,D: conservative enthalpy,val,iou_small,,,0
+d,D: conservative enthalpy,val,iou_medium,0.975075,0.00269174,3
+d,D: conservative enthalpy,val,iou_large,0.98422,0.00031636,3
+d,D: conservative enthalpy,val,energy_a,0.00364924,2.58906e-09,3
+d,D: conservative enthalpy,val,energy_end,-0.00198088,1.32974e-09,3
+d,D: conservative enthalpy,test_interp,nrmse,0.00654471,8.89928e-05,3
+d,D: conservative enthalpy,test_interp,melt_mae,6.60396,0.250567,3
+d,D: conservative enthalpy,test_interp,iou,0.975523,0.000368225,3
+d,D: conservative enthalpy,test_interp,iou_small,0.957311,0.00488215,3
+d,D: conservative enthalpy,test_interp,iou_medium,0.970007,0.00346087,3
+d,D: conservative enthalpy,test_interp,iou_large,0.977104,0.00105345,3
+d,D: conservative enthalpy,test_interp,energy_a,0.00245601,5.36779e-10,3
+d,D: conservative enthalpy,test_interp,energy_end,-0.0019227,4.52817e-10,3
+d,D: conservative enthalpy,test_interp_seed1,nrmse,0.0102273,0.000114378,3
+d,D: conservative enthalpy,test_interp_seed1,melt_mae,8.60668,0.22274,3
+d,D: conservative enthalpy,test_interp_seed1,iou,0.969368,0.000410653,3
+d,D: conservative enthalpy,test_interp_seed1,iou_small,0.935022,0.00341515,3
+d,D: conservative enthalpy,test_interp_seed1,iou_medium,0.957145,0.00364618,3
+d,D: conservative enthalpy,test_interp_seed1,iou_large,0.972674,0.001075,3
+d,D: conservative enthalpy,test_interp_seed1,energy_a,0.00235321,1.16927e-09,3
+d,D: conservative enthalpy,test_interp_seed1,energy_end,-0.00199615,1.72222e-09,3
+d,D: conservative enthalpy,test_extrap,nrmse,0.0122311,0.000202346,3
+d,D: conservative enthalpy,test_extrap,melt_mae,9.12152,0.0980627,3
+d,D: conservative enthalpy,test_extrap,iou,0.966737,0.0023185,3
+d,D: conservative enthalpy,test_extrap,iou_small,,,0
+d,D: conservative enthalpy,test_extrap,iou_medium,,,0
+d,D: conservative enthalpy,test_extrap,iou_large,0.966737,0.0023185,3
+d,D: conservative enthalpy,test_extrap,energy_a,0.00360555,3.78289e-10,3
+d,D: conservative enthalpy,test_extrap,energy_end,-0.00291271,2.91225e-09,3
+d,D: conservative enthalpy,test_path,nrmse,0.0118466,0.000142708,3
+d,D: conservative enthalpy,test_path,melt_mae,11.5276,0.630067,3
+d,D: conservative enthalpy,test_path,iou,0.91117,0.0057506,3
+d,D: conservative enthalpy,test_path,iou_small,0.337643,0.0337708,3
+d,D: conservative enthalpy,test_path,iou_medium,0.821142,0.0078788,3
+d,D: conservative enthalpy,test_path,iou_large,0.9173,0.0062883,3
+d,D: conservative enthalpy,test_path,energy_a,0.00207799,7.57046e-10,3
+d,D: conservative enthalpy,test_path,energy_end,-0.00141881,8.62539e-10,3
+d,D: conservative enthalpy,test_fine,nrmse,0.00721635,0.000126584,3
+d,D: conservative enthalpy,test_fine,melt_mae,7.59841,0.263144,3
+d,D: conservative enthalpy,test_fine,iou,0.966631,0.00111769,3
+d,D: conservative enthalpy,test_fine,iou_small,0.860387,0.0169296,3
+d,D: conservative enthalpy,test_fine,iou_medium,0.931098,0.00327372,3
+d,D: conservative enthalpy,test_fine,iou_large,0.976981,0.00135467,3
+d,D: conservative enthalpy,test_fine,energy_a,0.00220962,9.72285e-10,3
+d,D: conservative enthalpy,test_fine,energy_end,-0.00220962,9.72285e-10,3
+d,D: conservative enthalpy,test_large,nrmse,0.0083665,0.000163743,3
+d,D: conservative enthalpy,test_large,melt_mae,8.81597,0.249472,3
+d,D: conservative enthalpy,test_large,iou,0.971281,0.000505963,3
+d,D: conservative enthalpy,test_large,iou_small,,,0
+d,D: conservative enthalpy,test_large,iou_medium,0.966967,0.000646868,3
+d,D: conservative enthalpy,test_large,iou_large,0.974304,0.000616698,3
+d,D: conservative enthalpy,test_large,energy_a,0.00277083,8.75526e-10,3
+d,D: conservative enthalpy,test_large,energy_end,-0.00266832,6.75754e-10,3
+unet,U-Net (grid),val,nrmse,0.00701561,,1
+unet,U-Net (grid),val,melt_mae,8.09304,,1
+unet,U-Net (grid),val,iou,0.954778,,1
+unet,U-Net (grid),val,iou_small,,,0
+unet,U-Net (grid),val,iou_medium,0.939578,,1
+unet,U-Net (grid),val,iou_large,0.959947,,1
+unet,U-Net (grid),val,energy_a,0.0146341,,1
+unet,U-Net (grid),val,energy_end,-0.00641251,,1
+unet,U-Net (grid),test_interp,nrmse,0.00739865,,1
+unet,U-Net (grid),test_interp,melt_mae,8.65552,,1
+unet,U-Net (grid),test_interp,iou,0.952626,,1
+unet,U-Net (grid),test_interp,iou_small,0.87662,,1
+unet,U-Net (grid),test_interp,iou_medium,0.927754,,1
+unet,U-Net (grid),test_interp,iou_large,0.959664,,1
+unet,U-Net (grid),test_interp,energy_a,0.0156032,,1
+unet,U-Net (grid),test_interp,energy_end,-0.0058122,,1
+unet,U-Net (grid),test_interp_seed1,nrmse,0.00738286,,1
+unet,U-Net (grid),test_interp_seed1,melt_mae,8.7546,,1
+unet,U-Net (grid),test_interp_seed1,iou,0.951748,,1
+unet,U-Net (grid),test_interp_seed1,iou_small,0.902244,,1
+unet,U-Net (grid),test_interp_seed1,iou_medium,0.92611,,1
+unet,U-Net (grid),test_interp_seed1,iou_large,0.958077,,1
+unet,U-Net (grid),test_interp_seed1,energy_a,0.0156419,,1
+unet,U-Net (grid),test_interp_seed1,energy_end,-0.00574815,,1
+unet,U-Net (grid),test_extrap,nrmse,0.0142586,,1
+unet,U-Net (grid),test_extrap,melt_mae,14.4717,,1
+unet,U-Net (grid),test_extrap,iou,0.942716,,1
+unet,U-Net (grid),test_extrap,iou_small,,,0
+unet,U-Net (grid),test_extrap,iou_medium,,,0
+unet,U-Net (grid),test_extrap,iou_large,0.942716,,1
+unet,U-Net (grid),test_extrap,energy_a,0.0162794,,1
+unet,U-Net (grid),test_extrap,energy_end,0.0137352,,1
+unet,U-Net (grid),test_path,nrmse,0.0816025,,1
+unet,U-Net (grid),test_path,melt_mae,79.5204,,1
+unet,U-Net (grid),test_path,iou,0.743746,,1
+unet,U-Net (grid),test_path,iou_small,0.337065,,1
+unet,U-Net (grid),test_path,iou_medium,0.639844,,1
+unet,U-Net (grid),test_path,iou_large,0.750975,,1
+unet,U-Net (grid),test_path,energy_a,0.0356959,,1
+unet,U-Net (grid),test_path,energy_end,0.0252718,,1
+unet,U-Net (grid),test_fine,nrmse,0.00748485,,1
+unet,U-Net (grid),test_fine,melt_mae,8.95638,,1
+unet,U-Net (grid),test_fine,iou,0.941546,,1
+unet,U-Net (grid),test_fine,iou_small,0.811315,,1
+unet,U-Net (grid),test_fine,iou_medium,0.903414,,1
+unet,U-Net (grid),test_fine,iou_large,0.953263,,1
+unet,U-Net (grid),test_fine,energy_a,0.0154853,,1
+unet,U-Net (grid),test_fine,energy_end,-0.00618076,,1
+unet,U-Net (grid),test_large,nrmse,0.349793,,1
+unet,U-Net (grid),test_large,melt_mae,340.345,,1
+unet,U-Net (grid),test_large,iou,0.203993,,1
+unet,U-Net (grid),test_large,iou_small,,,0
+unet,U-Net (grid),test_large,iou_medium,0.204318,,1
+unet,U-Net (grid),test_large,iou_large,0.223718,,1
+unet,U-Net (grid),test_large,energy_a,1.18157,,1
+unet,U-Net (grid),test_large,energy_end,1.18157,,1
+lf_t,LF-T (fitted linear filter),val,nrmse,0.340331,,1
+lf_t,LF-T (fitted linear filter),val,melt_mae,146.013,,1
+lf_t,LF-T (fitted linear filter),val,iou,0.662199,,1
+lf_t,LF-T (fitted linear filter),val,iou_small,,,0
+lf_t,LF-T (fitted linear filter),val,iou_medium,0.61884,,1
+lf_t,LF-T (fitted linear filter),val,iou_large,0.682544,,1
+lf_t,LF-T (fitted linear filter),val,energy_a,0.397853,,1
+lf_t,LF-T (fitted linear filter),val,energy_end,-0.397853,,1
+lf_t,LF-T (fitted linear filter),test_interp,nrmse,0.343973,,1
+lf_t,LF-T (fitted linear filter),test_interp,melt_mae,150.171,,1
+lf_t,LF-T (fitted linear filter),test_interp,iou,0.659697,,1
+lf_t,LF-T (fitted linear filter),test_interp,iou_small,0.600786,,1
+lf_t,LF-T (fitted linear filter),test_interp,iou_medium,0.60475,,1
+lf_t,LF-T (fitted linear filter),test_interp,iou_large,0.674495,,1
+lf_t,LF-T (fitted linear filter),test_interp,energy_a,0.404978,,1
+lf_t,LF-T (fitted linear filter),test_interp,energy_end,-0.404978,,1
+lf_t,LF-T (fitted linear filter),test_interp_seed1,nrmse,0.344917,,1
+lf_t,LF-T (fitted linear filter),test_interp_seed1,melt_mae,154.81,,1
+lf_t,LF-T (fitted linear filter),test_interp_seed1,iou,0.647433,,1
+lf_t,LF-T (fitted linear filter),test_interp_seed1,iou_small,0.585716,,1
+lf_t,LF-T (fitted linear filter),test_interp_seed1,iou_medium,0.592224,,1
+lf_t,LF-T (fitted linear filter),test_interp_seed1,iou_large,0.662456,,1
+lf_t,LF-T (fitted linear filter),test_interp_seed1,energy_a,0.405409,,1
+lf_t,LF-T (fitted linear filter),test_interp_seed1,energy_end,-0.405409,,1
+lf_t,LF-T (fitted linear filter),test_extrap,nrmse,0.30297,,1
+lf_t,LF-T (fitted linear filter),test_extrap,melt_mae,160.686,,1
+lf_t,LF-T (fitted linear filter),test_extrap,iou,0.703268,,1
+lf_t,LF-T (fitted linear filter),test_extrap,iou_small,,,0
+lf_t,LF-T (fitted linear filter),test_extrap,iou_medium,,,0
+lf_t,LF-T (fitted linear filter),test_extrap,iou_large,0.703268,,1
+lf_t,LF-T (fitted linear filter),test_extrap,energy_a,0.378141,,1
+lf_t,LF-T (fitted linear filter),test_extrap,energy_end,-0.378141,,1
+lf_t,LF-T (fitted linear filter),test_path,nrmse,0.345405,,1
+lf_t,LF-T (fitted linear filter),test_path,melt_mae,234.774,,1
+lf_t,LF-T (fitted linear filter),test_path,iou,0.444835,,1
+lf_t,LF-T (fitted linear filter),test_path,iou_small,0.498687,,1
+lf_t,LF-T (fitted linear filter),test_path,iou_medium,0.452787,,1
+lf_t,LF-T (fitted linear filter),test_path,iou_large,0.444135,,1
+lf_t,LF-T (fitted linear filter),test_path,energy_a,0.396131,,1
+lf_t,LF-T (fitted linear filter),test_path,energy_end,-0.396131,,1
+lf_t,LF-T (fitted linear filter),test_fine,nrmse,0.344891,,1
+lf_t,LF-T (fitted linear filter),test_fine,melt_mae,151.486,,1
+lf_t,LF-T (fitted linear filter),test_fine,iou,0.652919,,1
+lf_t,LF-T (fitted linear filter),test_fine,iou_small,0.583085,,1
+lf_t,LF-T (fitted linear filter),test_fine,iou_medium,0.58644,,1
+lf_t,LF-T (fitted linear filter),test_fine,iou_large,0.670572,,1
+lf_t,LF-T (fitted linear filter),test_fine,energy_a,0.405279,,1
+lf_t,LF-T (fitted linear filter),test_fine,energy_end,-0.405279,,1
+lf_t,LF-T (fitted linear filter),test_large,nrmse,0.346782,,1
+lf_t,LF-T (fitted linear filter),test_large,melt_mae,156.816,,1
+lf_t,LF-T (fitted linear filter),test_large,iou,0.601167,,1
+lf_t,LF-T (fitted linear filter),test_large,iou_small,,,0
+lf_t,LF-T (fitted linear filter),test_large,iou_medium,0.6012,,1
+lf_t,LF-T (fitted linear filter),test_large,iou_large,0.611563,,1
+lf_t,LF-T (fitted linear filter),test_large,energy_a,0.407159,,1
+lf_t,LF-T (fitted linear filter),test_large,energy_end,-0.407159,,1
+fixed,Fixed linear filter,val,nrmse,0.150486,,1
+fixed,Fixed linear filter,val,melt_mae,311.306,,1
+fixed,Fixed linear filter,val,iou,0.484862,,1
+fixed,Fixed linear filter,val,iou_small,,,0
+fixed,Fixed linear filter,val,iou_medium,0.393397,,1
+fixed,Fixed linear filter,val,iou_large,0.567938,,1
+fixed,Fixed linear filter,val,energy_a,0.10602,,1
+fixed,Fixed linear filter,val,energy_end,0.00131341,,1
+fixed,Fixed linear filter,test_interp,nrmse,0.154698,,1
+fixed,Fixed linear filter,test_interp,melt_mae,305.418,,1
+fixed,Fixed linear filter,test_interp,iou,0.516193,,1
+fixed,Fixed linear filter,test_interp,iou_small,0.211971,,1
+fixed,Fixed linear filter,test_interp,iou_medium,0.439991,,1
+fixed,Fixed linear filter,test_interp,iou_large,0.581462,,1
+fixed,Fixed linear filter,test_interp,energy_a,0.0804816,,1
+fixed,Fixed linear filter,test_interp,energy_end,-0.0108171,,1
+fixed,Fixed linear filter,test_interp_seed1,nrmse,0.154712,,1
+fixed,Fixed linear filter,test_interp_seed1,melt_mae,305.222,,1
+fixed,Fixed linear filter,test_interp_seed1,iou,0.516661,,1
+fixed,Fixed linear filter,test_interp_seed1,iou_small,0.209561,,1
+fixed,Fixed linear filter,test_interp_seed1,iou_medium,0.439418,,1
+fixed,Fixed linear filter,test_interp_seed1,iou_large,0.582755,,1
+fixed,Fixed linear filter,test_interp_seed1,energy_a,0.0808038,,1
+fixed,Fixed linear filter,test_interp_seed1,energy_end,-0.0108939,,1
+fixed,Fixed linear filter,test_extrap,nrmse,0.185161,,1
+fixed,Fixed linear filter,test_extrap,melt_mae,296.109,,1
+fixed,Fixed linear filter,test_extrap,iou,0.599757,,1
+fixed,Fixed linear filter,test_extrap,iou_small,,,0
+fixed,Fixed linear filter,test_extrap,iou_medium,,,0
+fixed,Fixed linear filter,test_extrap,iou_large,0.599757,,1
+fixed,Fixed linear filter,test_extrap,energy_a,0.191028,,1
+fixed,Fixed linear filter,test_extrap,energy_end,0.0356949,,1
+fixed,Fixed linear filter,test_path,nrmse,0.146176,,1
+fixed,Fixed linear filter,test_path,melt_mae,305.052,,1
+fixed,Fixed linear filter,test_path,iou,0.424204,,1
+fixed,Fixed linear filter,test_path,iou_small,0.0940662,,1
+fixed,Fixed linear filter,test_path,iou_medium,0.260511,,1
+fixed,Fixed linear filter,test_path,iou_large,0.442457,,1
+fixed,Fixed linear filter,test_path,energy_a,0.0924258,,1
+fixed,Fixed linear filter,test_path,energy_end,0.00968774,,1
+fixed,Fixed linear filter,test_fine,nrmse,0.1551,,1
+fixed,Fixed linear filter,test_fine,melt_mae,305.235,,1
+fixed,Fixed linear filter,test_fine,iou,0.521222,,1
+fixed,Fixed linear filter,test_fine,iou_small,0.236562,,1
+fixed,Fixed linear filter,test_fine,iou_medium,0.444684,,1
+fixed,Fixed linear filter,test_fine,iou_large,0.585005,,1
+fixed,Fixed linear filter,test_fine,energy_a,0.0784856,,1
+fixed,Fixed linear filter,test_fine,energy_end,-0.0111312,,1
+fixed,Fixed linear filter,test_large,nrmse,0.150827,,1
+fixed,Fixed linear filter,test_large,melt_mae,313.227,,1
+fixed,Fixed linear filter,test_large,iou,0.469845,,1
+fixed,Fixed linear filter,test_large,iou_small,,,0
+fixed,Fixed linear filter,test_large,iou_medium,0.441369,,1
+fixed,Fixed linear filter,test_large,iou_large,0.54285,,1
+fixed,Fixed linear filter,test_large,energy_a,0.121574,,1
+fixed,Fixed linear filter,test_large,energy_end,-0.0126483,,1
+a_noaug,A without augmentation (ablation),val,nrmse,0.00360443,7.12094e-05,3
+a_noaug,A without augmentation (ablation),val,melt_mae,4.32826,0.0345076,3
+a_noaug,A without augmentation (ablation),val,iou,0.975007,0.00124762,3
+a_noaug,A without augmentation (ablation),val,iou_small,,,0
+a_noaug,A without augmentation (ablation),val,iou_medium,0.964514,0.00141789,3
+a_noaug,A without augmentation (ablation),val,iou_large,0.978584,0.0013129,3
+a_noaug,A without augmentation (ablation),val,energy_a,0.00723478,0.00460063,3
+a_noaug,A without augmentation (ablation),val,energy_end,0.000664657,0.00218069,3
+a_noaug,A without augmentation (ablation),test_interp,nrmse,0.00433374,0.000150775,3
+a_noaug,A without augmentation (ablation),test_interp,melt_mae,6.52829,0.0538145,3
+a_noaug,A without augmentation (ablation),test_interp,iou,0.964184,0.000642201,3
+a_noaug,A without augmentation (ablation),test_interp,iou_small,0.912699,0.0121909,3
+a_noaug,A without augmentation (ablation),test_interp,iou_medium,0.959962,0.00473384,3
+a_noaug,A without augmentation (ablation),test_interp,iou_large,0.966631,0.000773622,3
+a_noaug,A without augmentation (ablation),test_interp,energy_a,0.00892605,0.00547267,3
+a_noaug,A without augmentation (ablation),test_interp,energy_end,0.000707766,0.00175662,3
+a_noaug,A without augmentation (ablation),test_interp_seed1,nrmse,0.00675145,0.000282017,3
+a_noaug,A without augmentation (ablation),test_interp_seed1,melt_mae,7.5542,0.144447,3
+a_noaug,A without augmentation (ablation),test_interp_seed1,iou,0.958726,0.000649394,3
+a_noaug,A without augmentation (ablation),test_interp_seed1,iou_small,0.906905,0.00859025,3
+a_noaug,A without augmentation (ablation),test_interp_seed1,iou_medium,0.950136,0.00316044,3
+a_noaug,A without augmentation (ablation),test_interp_seed1,iou_large,0.961969,0.000756802,3
+a_noaug,A without augmentation (ablation),test_interp_seed1,energy_a,0.00952556,0.00367464,3
+a_noaug,A without augmentation (ablation),test_interp_seed1,energy_end,0.00241569,0.00288652,3
+a_noaug,A without augmentation (ablation),test_extrap,nrmse,0.0136312,0.000209714,3
+a_noaug,A without augmentation (ablation),test_extrap,melt_mae,19.8194,1.49861,3
+a_noaug,A without augmentation (ablation),test_extrap,iou,0.923986,0.00347867,3
+a_noaug,A without augmentation (ablation),test_extrap,iou_small,,,0
+a_noaug,A without augmentation (ablation),test_extrap,iou_medium,,,0
+a_noaug,A without augmentation (ablation),test_extrap,iou_large,0.923986,0.00347867,3
+a_noaug,A without augmentation (ablation),test_extrap,energy_a,0.0117019,0.000132382,3
+a_noaug,A without augmentation (ablation),test_extrap,energy_end,0.000951571,0.00117902,3
+a_noaug,A without augmentation (ablation),test_path,nrmse,0.172842,0.00721409,3
+a_noaug,A without augmentation (ablation),test_path,melt_mae,318.913,6.11723,3
+a_noaug,A without augmentation (ablation),test_path,iou,0.301564,0.00200307,3
+a_noaug,A without augmentation (ablation),test_path,iou_small,0,0,3
+a_noaug,A without augmentation (ablation),test_path,iou_medium,0.18935,0.00030079,3
+a_noaug,A without augmentation (ablation),test_path,iou_large,0.307491,0.00210641,3
+a_noaug,A without augmentation (ablation),test_path,energy_a,0.192726,0.0100891,3
+a_noaug,A without augmentation (ablation),test_path,energy_end,-0.19256,0.00987629,3
+a_noaug,A without augmentation (ablation),test_fine,nrmse,0.00563665,0.000178038,3
+a_noaug,A without augmentation (ablation),test_fine,melt_mae,7.36077,0.180995,3
+a_noaug,A without augmentation (ablation),test_fine,iou,0.954509,0.00297519,3
+a_noaug,A without augmentation (ablation),test_fine,iou_small,0.848357,0.0193401,3
+a_noaug,A without augmentation (ablation),test_fine,iou_medium,0.928772,0.00705789,3
+a_noaug,A without augmentation (ablation),test_fine,iou_large,0.963075,0.0019417,3
+a_noaug,A without augmentation (ablation),test_fine,energy_a,0.00910722,0.00591505,3
+a_noaug,A without augmentation (ablation),test_fine,energy_end,0.000479541,0.00181088,3
+a_noaug,A without augmentation (ablation),test_large,nrmse,0.0103872,0.00148889,3
+a_noaug,A without augmentation (ablation),test_large,melt_mae,4.6996,0.0395586,3
+a_noaug,A without augmentation (ablation),test_large,iou,0.971386,0.0013728,3
+a_noaug,A without augmentation (ablation),test_large,iou_small,,,0
+a_noaug,A without augmentation (ablation),test_large,iou_medium,0.962923,0.00290478,3
+a_noaug,A without augmentation (ablation),test_large,iou_large,0.977366,0.00242719,3
+a_noaug,A without augmentation (ablation),test_large,energy_a,0.0386144,0.00552963,3
+a_noaug,A without augmentation (ablation),test_large,energy_end,0.0381562,0.00522207,3

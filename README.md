@@ -71,6 +71,7 @@ python -m verify.unet_norm                   # normalization and plate-size chec
 python -m graphs.figures                     # mesh and interpolation figures in results/figures/
 python -m verify.harness                     # check 8: the harness scores the solver's own frames, under a minute
 python -m evaluation.rollout --size-bins     # melt-pool size bins from the train split (once)
+python -m analysis.main_table                # main results tables from results/eval/ (results/tables/)
 python -m models.linear_filter_rollout --split val  # selected LF-T: results/eval/lf_t_val_s5.csv/.json
 python -m evaluation.rollout --split val --stride 5 --predictor oracle   # rollout metrics in results/eval/
 python -m models.train --config configs/model_a.yaml --steps 2000 --name smoke   # training smoke run (CPU default; use --device cuda on GPU)
@@ -524,6 +525,36 @@ test_interp_027 with mesh seed 1 for augmented seed 2. Lower energy drift alone 
 temperature or melt-pool predictions. See the [full augmentation review](docs/model_a_augmentation_review.md) and
 [numerical summary and checkpoint hashes](results/eval/model_a_augmentation_summary.json).
 
+## Main results
+
+`python -m analysis.main_table` builds [results/tables/main_table.md](results/tables/main_table.md) from the split
+summaries in `results/eval/`: every model and baseline on all seven domains (nRMSE, melting-range MAE, IoU per size
+bin, spurious pools, energy errors; mean and sample standard deviation over three seeds), with the proposal's hypothesis
+test. `main_table.csv` and `hypothesis.csv` hold the same numbers. All files were scored with the current harness.
+
+| nRMSE, mean over seeds | val | interp | new mesh | extrap | path | fine | large |
+|---|---|---|---|---|---|---|---|
+| GCN | 0.0215 | 0.0220 | 0.0231 | 0.0387 | 0.1296 | 0.0224 | 0.0683 |
+| A: MeshGraphNet | 0.0036 | 0.0043 | 0.0118 | 0.0156 | 0.0993 | 0.0054 | 0.0114 |
+| B: + linear diffusion | **0.0029** | **0.0031** | 0.0099 | **0.0045** | 0.0765 | **0.0046** | 0.0092 |
+| C: enthalpy output | 0.0049 | 0.0056 | 0.0122 | 0.0168 | 0.1093 | 0.0066 | 0.0107 |
+| D: conservative enthalpy | 0.0062 | 0.0065 | 0.0102 | 0.0122 | **0.0118** | 0.0072 | **0.0084** |
+| U-Net (one seed) | 0.0070 | 0.0074 | **0.0074** | 0.0143 | 0.0816 | 0.0075 | 0.3498 |
+
+- B, the temperature model with a fixed linear diffusion branch, has the lowest melting-range MAE on every straight-track
+  domain and extrapolates to unseen laser settings far better than A (melting-range MAE 4.8 vs 24.1 K).
+- D generalises to unseen paths: test_path nRMSE 0.0118 against 0.077-0.130 for the other GNNs, melting-range MAE
+  11.5 K against 88-326 K, IoU 0.91 against at most 0.48. On zigzags its final energy error is -0.13%, against -22%
+  for A and +17% for B.
+- The hypothesis as stated in the proposal is not supported. With B as the reference (lowest val melting-range MAE
+  among the temperature models), C and D have a higher melting-range MAE on every straight-track domain (C on
+  test_large only within the seed spread). D meets the 20% target only on test_path, where its overall error falls by
+  about as much (-87% and -85%), so the gain is not specific to the melting range. The enthalpy target alone does not
+  help: C stays within 10% of A's melting-range MAE on every domain, and its only difference beyond the seed spread is
+  on test_fine, where it is 4% worse.
+- The U-Net is competitive on in-distribution straight tracks and has the lowest nRMSE on the new mesh, but fails on
+  the larger plate (test_large nRMSE 0.35). Both linear filters are far behind every learned model.
+
 ## Evaluation notes
 
 These change or sharpen the evaluation plan in the proposal.
@@ -616,10 +647,11 @@ models/          backbone.py, model_a.py, model_b.py, model_c.py, model_d.py, gc
                  compare_unet_norm.py, plot_unet_history.py
 train_harness.py unified training engine with dynamic model registry, reproducible seeding, and atomic checkpointing
 docs/            training_guide.md (unified guide & conventions), team reports and documentation
-analysis/        plateau.py, run_model_b_gate.py, spectra.py, mesh_transfer.py
+analysis/        plateau.py, run_model_b_gate.py, spectra.py, mesh_transfer.py, main_table.py (results tables)
 configs/         model_a.yaml, model_b.yaml, model_c.yaml, model_d.yaml, gcn.yaml
 notebooks/       project.ipynb (course requirement)
-results/         eval/ (rollout metrics), models/ (final runs, see below), figures/ (git-ignored),
+results/         eval/ (rollout metrics), tables/ (main results, generated), models/ (final runs, see below),
+                 figures/ (git-ignored),
                  unet_final/ (U-Net report and held-out metrics), unet_early_stop_retry/ (selected U-Net training run),
                  archive/ (historical U-Net experiments)
 checkpoints/     one folder per training run (git-ignored), except the five versioned U-Net checkpoints
