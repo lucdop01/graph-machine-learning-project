@@ -1,3 +1,7 @@
+> **Superseded.** Interim report from October 2026, kept for the record. Several numbers and claims in it were
+> later corrected (see [README](README.md)). The final results are in
+> [results/tables/main_table.md](../../results/tables/main_table.md) and [notebooks/project.ipynb](../../notebooks/project.ipynb).
+
 # Comprehensive Benchmark & Graph ML Research Report: All Models, 2D Solvers & Node-Level Visualizations
 
 **Course**: CS4350 Graph Machine Learning — TU Delft  
@@ -74,7 +78,7 @@ All models are evaluated under identical closed-loop autoregressive rollouts wit
 
 We generated a specialized 9-panel, publication-grade visualization showing the **adaptive graph mesh, discrete graph nodes, message-passing edges, and thermal fields**:
 
-![Graph Nodes and Heat Prediction Comparison](figures/graph_nodes_heat_comparison.png)
+![Graph Nodes and Heat Prediction Comparison](../figures/graph_nodes_heat_comparison.png)
 *(High-resolution figure saved at `docs/figures/graph_nodes_heat_comparison.png`)*
 
 ### Detailed Panel Breakdown
